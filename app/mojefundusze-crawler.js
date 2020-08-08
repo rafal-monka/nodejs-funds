@@ -6,106 +6,143 @@ const email = require("./email")
 
 const BASE_URL = "https://mojefundusze.pl/Fundusze/Inwestycyjne/";
 
-exports.calculate = ()=> {
+//https://santandertfi.pl/fundusze/santander-fio/santander-obligacji-skarbowych.html
+//https://santandertfi.pl/fundusze/santander-prestiz-sfio/santander-prestiz-obligacji-skarbowych.html
+//https://www.nntfi.pl/fundusze-inwestycyjne/fundusze-obligacji/nn-obligacji?unitsCategoryId=A&dateFrom=02.07.2020&dateTo=31.07.2020
+//https://www.money.pl/fundusze/archiwum/fundusze/
+//  santander OBL = TFI112
+//  santander OBLP = TFI4562
+
+exports.loadInvestment = () => {
+    let recs = [
+        { symbol: 'NN-OBL', dateStart: '2020-07-02', capital: 100000.0 },
+        { symbol: 'SAN-OBL', dateStart: '2020-06-30', capital: 100000.0 },
+        { symbol: 'SAN-OBLP', dateStart: '2020-06-30', capital: 100000.0 }
+    ]
+    recs.forEach(item => storage.storeInvestment(item) )
+}
+
+exports.loadFundValues = () => {
+    let samples = [
+
+        { symbol: 'NN-OBL', date: '2020-07-01', value: 345.33 },
+        { symbol: 'NN-OBL', date: '2020-07-02', value: 345.96 },
+        { symbol: 'NN-OBL', date: '2020-07-03', value: 346.32 },
+        { symbol: 'NN-OBL', date: '2020-07-06', value: 346.10 },
+        { symbol: 'NN-OBL', date: '2020-07-07', value: 345.74 },
+        { symbol: 'NN-OBL', date: '2020-07-08', value: 345.95 },
+        { symbol: 'NN-OBL', date: '2020-07-09', value: 345.65 },
+        { symbol: 'NN-OBL', date: '2020-07-10', value: 345.75 },
+        { symbol: 'NN-OBL', date: '2020-07-13', value: 345.14 },
+        { symbol: 'NN-OBL', date: '2020-07-14', value: 345.11 },
+        { symbol: 'NN-OBL', date: '2020-07-15', value: 345.06 },
+        { symbol: 'NN-OBL', date: '2020-07-16', value: 345.42 },
+        { symbol: 'NN-OBL', date: '2020-07-17', value: 345.52 },
+        { symbol: 'NN-OBL', date: '2020-07-20', value: 345.37 },
+        { symbol: 'NN-OBL', date: '2020-07-21', value: 345.69 },
+        { symbol: 'NN-OBL', date: '2020-07-22', value: 345.94 },
+        { symbol: 'NN-OBL', date: '2020-07-23', value: 345.75 },
+        { symbol: 'NN-OBL', date: '2020-07-24', value: 345.56 },
+        { symbol: 'NN-OBL', date: '2020-07-27', value: 345.77 },
+        { symbol: 'NN-OBL', date: '2020-07-28', value: 346.03 },
+        { symbol: 'NN-OBL', date: '2020-07-29', value: 346.19 },
+        { symbol: 'NN-OBL', date: '2020-07-30', value: 346.58 },
+        { symbol: 'NN-OBL', date: '2020-07-31', value: 346.88 },
+        { symbol: 'NN-OBL', date: '2020-08-03', value: 346.65 },
+        { symbol: 'NN-OBL', date: '2020-08-04', value: 347.01 },
+        { symbol: 'NN-OBL', date: '2020-08-05', value: 346.72 },
+        { symbol: 'NN-OBL', date: '2020-08-06', value: 346.93 },
+
+        { symbol: 'SAN-OBL', date: '2020-08-06', value: 23.75 },
+        { symbol: 'SAN-OBL', date: '2020-08-05', value: 23.74 },
+        { symbol: 'SAN-OBL', date: '2020-08-04', value: 23.78 },
+        { symbol: 'SAN-OBL', date: '2020-08-03', value: 23.74 },
+        { symbol: 'SAN-OBL', date: '2020-07-31', value: 23.76 },
+        { symbol: 'SAN-OBL', date: '2020-07-30', value: 23.75 },
+        { symbol: 'SAN-OBL', date: '2020-07-29', value: 23.69 },
+        { symbol: 'SAN-OBL', date: '2020-07-28', value: 23.67 },
+        { symbol: 'SAN-OBL', date: '2020-07-27', value: 23.64 },
+        { symbol: 'SAN-OBL', date: '2020-07-24', value: 23.62 },
+        { symbol: 'SAN-OBL', date: '2020-07-23', value: 23.63 },
+        { symbol: 'SAN-OBL', date: '2020-07-22', value: 23.67 },
+        { symbol: 'SAN-OBL', date: '2020-07-21', value: 23.66 },
+        { symbol: 'SAN-OBL', date: '2020-07-20', value: 23.63 },
+        { symbol: 'SAN-OBL', date: '2020-07-17', value: 23.65 },
+        { symbol: 'SAN-OBL', date: '2020-07-16', value: 23.64 },
+        { symbol: 'SAN-OBL', date: '2020-07-15', value: 23.60 },
+        { symbol: 'SAN-OBL', date: '2020-07-14', value: 23.59 },
+        { symbol: 'SAN-OBL', date: '2020-07-13', value: 23.56 },
+        { symbol: 'SAN-OBL', date: '2020-07-10', value: 23.65 },
+        { symbol: 'SAN-OBL', date: '2020-07-09', value: 23.62 },
+        { symbol: 'SAN-OBL', date: '2020-07-08', value: 23.64 },
+        { symbol: 'SAN-OBL', date: '2020-07-07', value: 23.60 },
+        { symbol: 'SAN-OBL', date: '2020-07-06', value: 23.60 },
+        { symbol: 'SAN-OBL', date: '2020-07-03', value: 23.63 },
+        { symbol: 'SAN-OBL', date: '2020-07-02', value: 23.60 },
+        { symbol: 'SAN-OBL', date: '2020-07-01', value: 23.53 },
+        { symbol: 'SAN-OBL', date: '2020-06-30', value: 23.57 },
+
+        { symbol: 'SAN-OBLP', date: '2020-08-06', value: 1513.08 },
+        { symbol: 'SAN-OBLP', date: '2020-08-05', value: 1512.38 },
+        { symbol: 'SAN-OBLP', date: '2020-08-04', value: 1514.64 },
+        { symbol: 'SAN-OBLP', date: '2020-08-03', value: 1511.95 },
+        { symbol: 'SAN-OBLP', date: '2020-07-31', value: 1513.21 },
+        { symbol: 'SAN-OBLP', date: '2020-07-30', value: 1513.03 },
+        { symbol: 'SAN-OBLP', date: '2020-07-29', value: 1508.79 },
+        { symbol: 'SAN-OBLP', date: '2020-07-28', value: 1507.86 },
+        { symbol: 'SAN-OBLP', date: '2020-07-27', value: 1505.58 },
+        { symbol: 'SAN-OBLP', date: '2020-07-24', value: 1504.43 },
+        { symbol: 'SAN-OBLP', date: '2020-07-23', value: 1505.21 },
+        { symbol: 'SAN-OBLP', date: '2020-07-22', value: 1507.42 },
+        { symbol: 'SAN-OBLP', date: '2020-07-21', value: 1506.66 },
+        { symbol: 'SAN-OBLP', date: '2020-07-20', value: 1504.86 },
+        { symbol: 'SAN-OBLP', date: '2020-07-17', value: 1506.52 },
+        { symbol: 'SAN-OBLP', date: '2020-07-16', value: 1505.42 },
+        { symbol: 'SAN-OBLP', date: '2020-07-15', value: 1503.26 },
+        { symbol: 'SAN-OBLP', date: '2020-07-14', value: 1502.04 },
+        { symbol: 'SAN-OBLP', date: '2020-07-13', value: 1500.65 },
+        { symbol: 'SAN-OBLP', date: '2020-07-10', value: 1505.89 },
+        { symbol: 'SAN-OBLP', date: '2020-07-09', value: 1504.42 },
+        { symbol: 'SAN-OBLP', date: '2020-07-08', value: 1505.43 },
+        { symbol: 'SAN-OBLP', date: '2020-07-07', value: 1502.62 },
+        { symbol: 'SAN-OBLP', date: '2020-07-06', value: 1502.92 },
+        { symbol: 'SAN-OBLP', date: '2020-07-03', value: 1504.79 },
+        { symbol: 'SAN-OBLP', date: '2020-07-02', value: 1503.02 },
+        { symbol: 'SAN-OBLP', date: '2020-07-01', value: 1498.16 },
+        { symbol: 'SAN-OBLP', date: '2020-06-30', value: 1500.86 },
+                
+    ]
+    samples.forEach(item => storage.store(item.symbol, new Date(item.date), item.value) )
+}
+
+exports.perform = async () => {
+    let dictionary = await storage.getDictionary()
+    console.log(dictionary)
+    // return 
     let pad = new Launcher(
         7, 
-        [
-            {
-                symbol: 'NN-OBL',
-                code: 'nn-obligacji',
-                startDate: '2020-07-02',  
-                startValue: 345.96, 
-                capital: 100000.0
-            },
-            // {
-            //     code: 'nn-obligacji',
-            //     startDate: '2020-08-08',  
-            //     startValue: 0.0, 
-            //     capital: 60000.0
-            // },
-            {
-                symbol: 'SKB-OBL',
-                code: 'SKARBIEC-Obligacja', 
-                startDate: new Date('2020-08-09'),                 
-                startValue: 0.0, 
-                capital: 20000.0
-            },
-            {
-                symbol: 'SKB-SWZ',
-                code: 'SKARBIEC-Sek-Nieruch', 
-                startDate: new Date('2020-08-09'),
-                startValue: 0.0, 
-                capital: 20000.0
-            },
-            {
-                symbol: 'SAN-OBL',
-                code: 'Santander-Obligacji-Skarbowych-A', 
-                startDate: new Date('2020-06-30'), 
-                startValue: 23.57, 
-                capital: 100000.0
-            },
-            {
-                symbol: 'SAN-OBLP',
-                code: 'Santander-Prestiz-Obligacji-Skarbowych',
-                startDate: new Date('2020-06-30'),  
-                startValue: 1500.86, 
-                capital: 100000.0
-            },
-            {
-                symbol: 'SAN-AKP',                
-                code: 'Santander-Akcji-Polskich-A', 
-                startDate: new Date('2020-06-25'), 
-                startValue: 0.0, 
-                capital: 1000.0
-            },
-            {
-                symbol: 'PEK-OBL',                
-                code: 'Pekao-Obligacji-Dynamiczna-Alokacja-2-FIO', 
-                startDate: new Date('2020-08-10'), 
-                startValue: 0.0,
-                capital: 200000.0
-            }
-            // '',Quercus
-        ], 
+        dictionary, 
         //callFunction,
         getFund,
         //callbackFunction,
         parseFund,
         //finalCallBack
         (param) => {         
-            let arr = []  
-            let diff
-            let interests
-            param.forEach(el => {
-                //console.log(el)
-                if (el.item.startValue > 0) {
-                    diff = (el.output.value - el.item.startValue) / el.item.startValue
-                    interests = Math.round(diff * el.item.capital * 100) / 100
-                    arr.push({
-                        code: el.item.code,
-                        fund: el.output.title,
-                        startDate: el.item.startDate,
-                        startValue: el.item.startValue,
-                        date: new Date(el.output.date),
-                        value: el.output.value,
-                        diff: Math.round(diff * 100 * 100)/100,
-                        interests: interests,
-                        interests_net: Math.round(interests*0.81*100)/100
-                    })                      
-                }  
+            let arr = []
+            //store
+            param.forEach(el => {                               
+                //temp
+                arr.push({
+                    symbol: el.item.symbol, 
+                    date: new Date(el.output.date), 
+                    value: el.output.value
+                })
 
-                //storage
-                storage.store(el.item.symbol, el.item.code, new Date(el.output.date), el.output.value)
-                
+                storage.store(el.item.symbol, new Date(el.output.date), el.output.value)                
             })
-            console.log(arr)
-            let total = arr.reduce((total,item) => total+item.interests_net, 0 )
-            console.log('total', total)
 
-            email.sendEmail('[Funds]', '<div>'+JSON.stringify(arr,2)+'</div><div>TOTAL='+total+'</div>');
-
-            //call 
-            //this.run_links(funds);
+            //call calculation
+            //calculate(arr)            
             
         } 
     );
@@ -150,19 +187,148 @@ parseFund = (item, html) => {
 }
 
 
+//-------------------------------------------------------
+calculateOLD = async (arr) => {
+    let investments = [ 
+        {
+            symbol: 'NN-OBL',
+            startDate: '2020-07-02',  
+            startValue: 345.96, 
+            capital: 100000.0
+        },
+        {
+            symbol: 'NN-OBL',
+            startDate: '2020-08-08',  
+            startValue: 0.0, 
+            capital: 60000.0
+        },
+        {
+            symbol: 'SKB-OBL',
+            startDate: new Date('2020-08-09'),                 
+            startValue: 0.0, 
+            capital: 20000.0
+        },
+        {
+            symbol: 'SKB-SWZ',
+            startDate: new Date('2020-08-09'),
+            startValue: 0.0, 
+            capital: 20000.0
+        },
+        {
+            symbol: 'SAN-OBL',
+            startDate: new Date('2020-06-30'), 
+            startValue: 23.57, 
+            capital: 100000.0
+        },
+        {
+            symbol: 'SAN-OBLP',
+            startDate: new Date('2020-06-30'),  
+            startValue: 1500.86, 
+            capital: 100000.0
+        },
+        {
+            symbol: 'SAN-AKP',                
+            startDate: new Date('2020-06-25'), 
+            startValue: 0.0, 
+            capital: 1000.0
+        },
+        {
+            symbol: 'PEK-OBL',                
+            startDate: new Date('2020-08-10'), 
+            startValue: 0.0,
+            capital: 200000.0
+        }
+    ]
 
+    let fundsValues = await storage.getFundsValues()
 
-//------------------------------------------------------
-exports.testPage = () => {
-    tmp = [ { category: 'painting', href: 'p_0086.htm' },
-            { category: 'watercolours', href: 'p_0851.htm'},
-            { category: 'drawings', href: 'p_0908.htm'}
-          ];
-    tmp.forEach(e => {
-        getPage(e).
-            then(response => {
-                let res = parsePage(response);
-                console.log(res);
-            })
-    })
+    email.sendEmail('[Funds]', '<div>'+JSON.stringify(arr,' ',3)+'</div>' +  '<div>'+JSON.stringify(fundsValues,' ',3)+'</div>')
 }
+
+
+
+
+
+//----------------
+// if (el.item.startValue > 0) {
+//     diff = (el.output.value - el.item.startValue) / el.item.startValue
+//     interests = Math.round(diff * el.item.capital * 100) / 100
+//     arr.push({
+//         code: el.item.code,
+//         fund: el.output.title,
+//         startDate: el.item.startDate,
+//         startValue: el.item.startValue,
+//         date: new Date(el.output.date),
+//         value: el.output.value,
+//         diff: Math.round(diff * 100 * 100)/100,
+//         interests: interests,
+//         interests_net: Math.round(interests*0.81*100)/100
+//     })                      
+// }  
+
+
+// let arr = []  
+// let diff
+// let interests
+// console.log(arr)
+// let total = arr.reduce((total,item) => total+item.interests_net, 0 )
+// console.log('total', total)
+
+// [
+//     {
+//         symbol: 'NN-OBL',
+//         code: 'nn-obligacji',
+//         startDate: '2020-07-02',  
+//         startValue: 345.96, 
+//         capital: 100000.0
+//     },
+//     // {
+//     //     code: 'nn-obligacji',
+//     //     startDate: '2020-08-08',  
+//     //     startValue: 0.0, 
+//     //     capital: 60000.0
+//     // },
+//     {
+//         symbol: 'SKB-OBL',
+//         code: 'SKARBIEC-Obligacja', 
+//         startDate: new Date('2020-08-09'),                 
+//         startValue: 0.0, 
+//         capital: 20000.0
+//     },
+//     {
+//         symbol: 'SKB-SWZ',
+//         code: 'SKARBIEC-Sek-Nieruch', 
+//         startDate: new Date('2020-08-09'),
+//         startValue: 0.0, 
+//         capital: 20000.0
+//     },
+//     {
+//         symbol: 'SAN-OBL',
+//         code: 'Santander-Obligacji-Skarbowych-A', 
+//         startDate: new Date('2020-06-30'), 
+//         startValue: 23.57, 
+//         capital: 100000.0
+//     },
+//     {
+//         symbol: 'SAN-OBLP',
+//         code: 'Santander-Prestiz-Obligacji-Skarbowych',
+//         startDate: new Date('2020-06-30'),  
+//         startValue: 1500.86, 
+//         capital: 100000.0
+//     },
+//     {
+//         symbol: 'SAN-AKP',                
+//         code: 'Santander-Akcji-Polskich-A', 
+//         startDate: new Date('2020-06-25'), 
+//         startValue: 0.0, 
+//         capital: 1000.0
+//     },
+//     {
+//         symbol: 'PEK-OBL',                
+//         code: 'Pekao-Obligacji-Dynamiczna-Alokacja-2-FIO', 
+//         startDate: new Date('2020-08-10'), 
+//         startValue: 0.0,
+//         capital: 200000.0
+//     }
+//     // '',Quercus
+// ]

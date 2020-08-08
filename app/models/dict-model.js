@@ -1,12 +1,11 @@
 
 const mongoose = require('mongoose')
 
-const fundSchema = new mongoose.Schema({
+const dictSchema = new mongoose.Schema({
     symbol: String, 
-    date: Date,
-    value: Number,
+    code: String,
     created_at: { type: Date, default: new Date() },
     updated_at: { type: Date, default: null }
 })
 
-module.exports = mongoose.model('Fund', fundSchema)
+module.exports = mongoose.model('Dict', dictSchema)

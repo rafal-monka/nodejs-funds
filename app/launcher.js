@@ -1,14 +1,4 @@
 module.exports = class Launcher  {
-    // max_parralel = 3;
-    // items = [];
-    // status = 'INIT';
-    // lastLaunchItem = 0;
-    // runningCount = 0;
-    // //runningCount: 0,
-    // output = [];
-    // callFunction = () => {};
-    // callbackFunction = () => {};
-    // finalCallbackFunction = () => {};
 
     constructor(max_parralel, items, callFunction, callbackFunction, finalCallbackFunction) {
         this.max_parralel = max_parralel;

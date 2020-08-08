@@ -1,12 +1,12 @@
 
 const mongoose = require('mongoose')
 
-const fundSchema = new mongoose.Schema({
+const investmentSchema = new mongoose.Schema({
     symbol: String, 
-    date: Date,
-    value: Number,
+    dateStart: Date,
+    capital: Number,
     created_at: { type: Date, default: new Date() },
     updated_at: { type: Date, default: null }
 })
 
-module.exports = mongoose.model('Fund', fundSchema)
+module.exports = mongoose.model('Investment', investmentSchema)
