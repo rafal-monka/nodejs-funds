@@ -142,7 +142,9 @@ exports.perform = async () => {
             })
 
             //call calculation
-            //calculate(arr)            
+            //calculate(arr) 
+            email.sendEmail('[Funds]', '<a href="https://funds-apps.apps.ca-central-1.starter.openshift-online.com/funds">Look</a>')
+                       
             
         } 
     );

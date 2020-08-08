@@ -2,7 +2,9 @@
  * Funds Node app
  */
 require('dotenv').config();
-const express = require("express");
+const express = require("express")
+const cors = require('cors')
+
 const bodyParser = require("body-parser");
 const path = require('path')
 
@@ -16,6 +18,7 @@ const status = require("./app/status.js");
 
 const app = express();
 
+app.use(cors())
 // parse requests of content-type - application/json
 app.use(bodyParser.json());
 // parse requests of content-type - application/x-www-form-urlencoded
