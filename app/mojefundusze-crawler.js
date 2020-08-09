@@ -6,18 +6,28 @@ const email = require("./email")
 
 const BASE_URL = "https://mojefundusze.pl/Fundusze/Inwestycyjne/";
 
+//https://investors.pl/fundusze-inwestycyjne/
 //https://santandertfi.pl/fundusze/santander-fio/santander-obligacji-skarbowych.html
 //https://santandertfi.pl/fundusze/santander-prestiz-sfio/santander-prestiz-obligacji-skarbowych.html
 //https://www.nntfi.pl/fundusze-inwestycyjne/fundusze-obligacji/nn-obligacji?unitsCategoryId=A&dateFrom=02.07.2020&dateTo=31.07.2020
 //https://www.money.pl/fundusze/archiwum/fundusze/
 //  santander OBL = TFI112
 //  santander OBLP = TFI4562
+//  santander AKP = TFI1 
+//  skarbiec OBL = TFI66
+//  skarbiec SW =  
 
 exports.loadInvestment = () => {
-    let recs = [
+    let recs = [        
+        { symbol: 'NN-OBL', dateStart: '2020-08-05', capital: 60000.0 },        
         { symbol: 'NN-OBL', dateStart: '2020-07-02', capital: 100000.0 },
+        { symbol: 'SAN-OBL', dateStart: '2020-06-25', capital: 1000.0 },
         { symbol: 'SAN-OBL', dateStart: '2020-06-30', capital: 100000.0 },
-        { symbol: 'SAN-OBLP', dateStart: '2020-06-30', capital: 100000.0 }
+        { symbol: 'SAN-OBLP', dateStart: '2020-06-30', capital: 100000.0 },
+        { symbol: 'SAN-AKP', dateStart: '2020-06-25', capital: 1000.0 },
+        { symbol: 'PEK-OBL', dateStart: '2020-08-05', capital: 200000.0 },  
+        { symbol: 'SKA-OBL', dateStart: '2020-08-05', capital: 20000.0 },
+        { symbol: 'SKA-SWZ', dateStart: '2020-08-05', capital: 20000.0 }
     ]
     recs.forEach(item => storage.storeInvestment(item) )
 }
@@ -82,6 +92,10 @@ exports.loadFundValues = () => {
         { symbol: 'SAN-OBL', date: '2020-07-01', value: 23.53 },
         { symbol: 'SAN-OBL', date: '2020-06-30', value: 23.57 },
 
+        { symbol: 'SAN-OBL', date: '2020-06-29', value: 23.50 },
+        { symbol: 'SAN-OBL', date: '2020-06-26', value: 23.54 },
+        { symbol: 'SAN-OBL', date: '2020-06-25', value: 23.56 },
+
         { symbol: 'SAN-OBLP', date: '2020-08-06', value: 1513.08 },
         { symbol: 'SAN-OBLP', date: '2020-08-05', value: 1512.38 },
         { symbol: 'SAN-OBLP', date: '2020-08-04', value: 1514.64 },
@@ -111,6 +125,103 @@ exports.loadFundValues = () => {
         { symbol: 'SAN-OBLP', date: '2020-07-01', value: 1498.16 },
         { symbol: 'SAN-OBLP', date: '2020-06-30', value: 1500.86 },
                 
+
+        { symbol: 'SAN-AKP', date: '2020-08-06', value:  29.01}, 
+        { symbol: 'SAN-AKP', date: '2020-08-05', value:  29.26}, 
+        { symbol: 'SAN-AKP', date: '2020-08-04', value:  28.97}, 
+        { symbol: 'SAN-AKP', date: '2020-08-03', value:  28.81}, 
+        { symbol: 'SAN-AKP', date: '2020-07-31', value:  28.29}, 
+        { symbol: 'SAN-AKP', date: '2020-07-30', value:  28.19}, 
+        { symbol: 'SAN-AKP', date: '2020-07-29', value:  29.11}, 
+        { symbol: 'SAN-AKP', date: '2020-07-28', value:  29.13}, 
+        { symbol: 'SAN-AKP', date: '2020-07-27', value:  29.19}, 
+        { symbol: 'SAN-AKP', date: '2020-07-24', value:  29.02}, 
+        { symbol: 'SAN-AKP', date: '2020-07-23', value:  29.20}, 
+        { symbol: 'SAN-AKP', date: '2020-07-22', value:  29.29}, 
+        { symbol: 'SAN-AKP', date: '2020-07-21', value:  29.53}, 
+        { symbol: 'SAN-AKP', date: '2020-07-20', value:  29.42}, 
+        { symbol: 'SAN-AKP', date: '2020-07-17', value:  28.85}, 
+        { symbol: 'SAN-AKP', date: '2020-07-16', value:  28.89}, 
+        { symbol: 'SAN-AKP', date: '2020-07-15', value:  28.87}, 
+        { symbol: 'SAN-AKP', date: '2020-07-14', value:  28.58}, 
+        { symbol: 'SAN-AKP', date: '2020-07-13', value:  28.89}, 
+        { symbol: 'SAN-AKP', date: '2020-07-10', value:  28.86}, 
+        { symbol: 'SAN-AKP', date: '2020-07-09', value:  28.79}, 
+        { symbol: 'SAN-AKP', date: '2020-07-08', value:  28.74}, 
+        { symbol: 'SAN-AKP', date: '2020-07-07', value:  28.86}, 
+        { symbol: 'SAN-AKP', date: '2020-07-06', value:  29.14}, 
+        { symbol: 'SAN-AKP', date: '2020-07-03', value:  28.87}, 
+        { symbol: 'SAN-AKP', date: '2020-07-02', value:  28.93}, 
+        { symbol: 'SAN-AKP', date: '2020-07-01', value:  28.42}, 
+        { symbol: 'SAN-AKP', date: '2020-06-30', value:  28.21}, 
+        { symbol: 'SAN-AKP', date: '2020-06-29', value:  28.34}, 
+        { symbol: 'SAN-AKP', date: '2020-06-26', value:  28.20}, 
+        { symbol: 'SAN-AKP', date: '2020-06-25', value:  28.67},
+
+        {symbol: 'SKA-OBL', date: '2020-08-06', value: 29.01},
+        {symbol: 'SKA-OBL', date: '2020-08-05', value: 29.26},
+        {symbol: 'SKA-OBL', date: '2020-08-04', value: 28.97},
+        {symbol: 'SKA-OBL', date: '2020-08-03', value: 28.81},
+        {symbol: 'SKA-OBL', date: '2020-07-31', value: 28.29},
+        {symbol: 'SKA-OBL', date: '2020-07-30', value: 28.19},
+        {symbol: 'SKA-OBL', date: '2020-07-29', value: 29.11},
+        {symbol: 'SKA-OBL', date: '2020-07-28', value: 29.13},
+        {symbol: 'SKA-OBL', date: '2020-07-27', value: 29.19},
+        {symbol: 'SKA-OBL', date: '2020-07-24', value: 29.02},
+        {symbol: 'SKA-OBL', date: '2020-07-23', value: 29.2},
+        {symbol: 'SKA-OBL', date: '2020-07-22', value: 29.29},
+        {symbol: 'SKA-OBL', date: '2020-07-21', value: 29.53},
+        {symbol: 'SKA-OBL', date: '2020-07-20', value: 29.42},
+        {symbol: 'SKA-OBL', date: '2020-07-17', value: 28.85},
+        {symbol: 'SKA-OBL', date: '2020-07-16', value: 28.89},
+        {symbol: 'SKA-OBL', date: '2020-07-15', value: 28.87},
+        {symbol: 'SKA-OBL', date: '2020-07-14', value: 28.58},
+        {symbol: 'SKA-OBL', date: '2020-07-13', value: 28.89},
+        {symbol: 'SKA-OBL', date: '2020-07-10', value: 28.86},
+        {symbol: 'SKA-OBL', date: '2020-07-09', value: 28.79},
+        {symbol: 'SKA-OBL', date: '2020-07-08', value: 28.74},
+        {symbol: 'SKA-OBL', date: '2020-07-07', value: 28.86},
+        {symbol: 'SKA-OBL', date: '2020-07-06', value: 29.14},
+        {symbol: 'SKA-OBL', date: '2020-07-03', value: 28.87},
+        {symbol: 'SKA-OBL', date: '2020-07-02', value: 28.93},
+        {symbol: 'SKA-OBL', date: '2020-07-01', value: 28.42},
+        {symbol: 'SKA-OBL', date: '2020-06-30', value: 28.21},
+        {symbol: 'SKA-OBL', date: '2020-06-29', value: 28.34},
+        {symbol: 'SKA-OBL', date: '2020-06-26', value: 28.2},
+        {symbol: 'SKA-OBL', date: '2020-06-25', value: 28.67},
+
+        {symbol: 'SKA-SWZ', date: '2020-08-06', value: 221.05},
+        {symbol: 'SKA-SWZ', date: '2020-08-05', value: 224.22},
+        {symbol: 'SKA-SWZ', date: '2020-08-04', value: 225.05},
+        {symbol: 'SKA-SWZ', date: '2020-08-03', value: 223.68},
+        {symbol: 'SKA-SWZ', date: '2020-07-31', value: 216.98},
+        {symbol: 'SKA-SWZ', date: '2020-07-30', value: 214.97},
+        {symbol: 'SKA-SWZ', date: '2020-07-29', value: 213.81},
+        {symbol: 'SKA-SWZ', date: '2020-07-28', value: 205.67},
+        {symbol: 'SKA-SWZ', date: '2020-07-27', value: 206.91},
+        {symbol: 'SKA-SWZ', date: '2020-07-24', value: 202.79},
+        {symbol: 'SKA-SWZ', date: '2020-07-23', value: 203.28},
+        {symbol: 'SKA-SWZ', date: '2020-07-22', value: 209.1},
+        {symbol: 'SKA-SWZ', date: '2020-07-21', value: 208.8},
+        {symbol: 'SKA-SWZ', date: '2020-07-20', value: 213.36},
+        {symbol: 'SKA-SWZ', date: '2020-07-17', value: 201.66},
+        {symbol: 'SKA-SWZ', date: '2020-07-16', value: 199.16},
+        {symbol: 'SKA-SWZ', date: '2020-07-15', value: 202.38},
+        {symbol: 'SKA-SWZ', date: '2020-07-14', value: 202.93},
+        {symbol: 'SKA-SWZ', date: '2020-07-13', value: 198.65},
+        {symbol: 'SKA-SWZ', date: '2020-07-10', value: 213.31},
+        {symbol: 'SKA-SWZ', date: '2020-07-09', value: 215.76},
+        {symbol: 'SKA-SWZ', date: '2020-07-08', value: 212.26},
+        {symbol: 'SKA-SWZ', date: '2020-07-07', value: 204.34},
+        {symbol: 'SKA-SWZ', date: '2020-07-06', value: 203.36},
+        {symbol: 'SKA-SWZ', date: '2020-07-03', value: 202.52},
+        {symbol: 'SKA-SWZ', date: '2020-07-02', value: 202.61},
+        {symbol: 'SKA-SWZ', date: '2020-07-01', value: 202.13},
+        {symbol: 'SKA-SWZ', date: '2020-06-30', value: 195.47},
+        {symbol: 'SKA-SWZ', date: '2020-06-29', value: 191.2},
+        {symbol: 'SKA-SWZ', date: '2020-06-26', value: 194.13},
+        {symbol: 'SKA-SWZ', date: '2020-06-25', value: 195.57},        
+
     ]
     samples.forEach(item => storage.store(item.symbol, new Date(item.date), item.value) )
 }

@@ -4,30 +4,24 @@
 require('dotenv').config();
 const express = require("express")
 const cors = require('cors')
-
 const bodyParser = require("body-parser");
 const path = require('path')
-
-// const mongodb = require("./app/mongodb.js");
 const initDatabase = require('./config/database')
 const schedule = require('node-schedule')
 
 const mojefundusze = require("./app/mojefundusze-crawler.js");
-const observations = require("./app/controllers/observations.js");
-const status = require("./app/status.js");
+// ###unused: const observations = require("./app/controllers/observations.js");
+// ###unused: const status = require("./app/status.js");
 
 const app = express();
 
 app.use(cors())
-// parse requests of content-type - application/json
-app.use(bodyParser.json());
-// parse requests of content-type - application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());// parse requests of content-type - application/json
+app.use(bodyParser.urlencoded({ extended: true }));// parse requests of content-type - application/x-www-form-urlencoded
 
 app.get("/home", (req, res) => {
     res.json({ message: "Welcome to Funds application." });
 });
-
 
 //make default URL for SPA
 const buildLocation = 'public'; //include public folder with SPA app
@@ -53,28 +47,24 @@ app.listen(PORT, () => {
 //init database
 initDatabase()
 
-//mojefundusze.dictionary()
-
-//mojefundusze.loadFundValues()
-//mojefundusze.loadInvestment()
+// mojefundusze.dictionary()
+// mojefundusze.loadFundValues()
+// mojefundusze.loadInvestment()
 
 // testInv.forEach(item => {
 //     status.addItem(item.symbol)
 //     observations.load(item)
 // })
-
 // console.log(status.getInfo())
-
 // setTimeout(function() { 
 //     status.checkingStatus();    
 // }, status.CONST_INTERVAL);
-
 
 //run
 mojefundusze.perform() 
 
 //schedule word reminder
-cronParams = "0 15 18 * * MON-FRI"; //every weekday 18:15
+cronParams = "0 15 18 * * MON-SUN"; //every weekday 18:15
 console.log('schedule', cronParams)
 
 var j = schedule.scheduleJob(cronParams, function(){ 
