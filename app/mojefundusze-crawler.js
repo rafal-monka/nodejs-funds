@@ -221,7 +221,7 @@ exports.perform = async () => {
 
             //call calculation
             //calculate(arr) 
-            email.sendEmail('[Funds]', '<a href="https://funds-apps.apps.ca-central-1.starter.openshift-online.com/funds">Look</a>')
+            email.sendEmail('Funds '+new Date(), '<a href="https://funds-apps.apps.ca-central-1.starter.openshift-online.com">Look</a>')
                        
             
         } 
