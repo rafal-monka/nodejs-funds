@@ -48,8 +48,8 @@ app.listen(PORT, () => {
 initDatabase()
 
 // mojefundusze.dictionary()
-mojefundusze.loadFundValues()
-mojefundusze.loadInvestment()
+// mojefundusze.loadFundValues()
+// mojefundusze.loadInvestment()
 
 // testInv.forEach(item => {
 //     status.addItem(item.symbol)
