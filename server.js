@@ -10,6 +10,7 @@ const initDatabase = require('./config/database')
 const schedule = require('node-schedule')
 
 const mojefundusze = require("./app/mojefundusze-crawler.js");
+const money = require("./app/money-crawler.js");
 // ###unused: const observations = require("./app/controllers/observations.js");
 // ###unused: const status = require("./app/status.js");
 
@@ -47,6 +48,9 @@ app.listen(PORT, () => {
 //init database
 initDatabase()
 
+//money.import("2020-06-01", "2020-08-06")
+//return 
+//mojefundusze.delete('SKA-OBL')
 // mojefundusze.dictionary()
 // mojefundusze.loadFundValues()
 // mojefundusze.loadInvestment()
@@ -64,7 +68,7 @@ initDatabase()
 mojefundusze.perform() 
 
 //schedule word reminder
-cronParams = "0 15 18 * * MON-SUN"; //every weekday 18:15
+cronParams = "0 15 18 * * *"; //every weekday 18:15 MON-SUN
 console.log('schedule', cronParams)
 
 var j = schedule.scheduleJob(cronParams, function(){ 

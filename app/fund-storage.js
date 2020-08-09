@@ -31,6 +31,12 @@ exports.storeResult = (obj) => {
         })
 }
 
+exports.delete = (symbol) => {
+    Fund.deleteMany({symbol: symbol}, function (err, docs) {
+        console.log('Deleted')
+    })    
+}
+
 exports.store = (symbol, date, value) => {
     Fund.find( {symbol: symbol, date: date}, function (err, docs) {
         if (docs.length===0) {
