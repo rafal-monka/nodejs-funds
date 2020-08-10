@@ -64,16 +64,15 @@ initDatabase()
 //     status.checkingStatus();    
 // }, status.CONST_INTERVAL);
 
-//run
+//run 
 mojefundusze.perform() 
 
 //schedule word reminder
-cronParams = "0 15 18 * * *"; //every weekday 18:15 MON-SUN
+cronParams = "0 20 8-18 * * *"; //every weekday 18:15 MON-SUN
 console.log('schedule', cronParams)
 
 var j = schedule.scheduleJob(cronParams, function(){ 
     mojefundusze.perform()
 });
 
-  
-
+//[eof]
