@@ -67,9 +67,10 @@ initDatabase()
 //run 
 mojefundusze.perform() 
 
+
 //schedule word reminder
-cronParams = "0 20 8-18 * * *"; //every weekday 18:15 MON-SUN
-console.log('schedule', cronParams)
+cronParams = "0 55 6-17 * * 1-6"; //every 8am - 7pm :55 MON-SAT
+console.log('schedule', new Date(), cronParams)
 
 var j = schedule.scheduleJob(cronParams, function(){ 
     mojefundusze.perform()
