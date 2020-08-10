@@ -219,11 +219,11 @@ exports.perform = async () => {
                 storage.store(el.item.symbol, new Date(el.output.date), el.output.value)                
             })
 
-            //call calculation
-            //calculate(arr) 
-            email.sendEmail('Funds '+new Date(), '<a href="https://funds-apps.apps.ca-central-1.starter.openshift-online.com">Look</a>')
-                       
-            
+            //email
+            email.sendEmail('Funds '+new Date(), 
+                '<a href="https://funds-apps.apps.ca-central-1.starter.openshift-online.com">Look</a>'
+                +'<div><pre><small>'+JSON.stringify(param.map(item=>item.output), ' ', 2)+'</small></pre></div>'
+            )                                   
         } 
     );
     pad.run();
@@ -267,63 +267,6 @@ parseFund = (item, html) => {
 }
 
 
-//-------------------------------------------------------
-calculateOLD = async (arr) => {
-    let investments = [ 
-        {
-            symbol: 'NN-OBL',
-            startDate: '2020-07-02',  
-            startValue: 345.96, 
-            capital: 100000.0
-        },
-        {
-            symbol: 'NN-OBL',
-            startDate: '2020-08-08',  
-            startValue: 0.0, 
-            capital: 60000.0
-        },
-        {
-            symbol: 'SKB-OBL',
-            startDate: new Date('2020-08-09'),                 
-            startValue: 0.0, 
-            capital: 20000.0
-        },
-        {
-            symbol: 'SKB-SWZ',
-            startDate: new Date('2020-08-09'),
-            startValue: 0.0, 
-            capital: 20000.0
-        },
-        {
-            symbol: 'SAN-OBL',
-            startDate: new Date('2020-06-30'), 
-            startValue: 23.57, 
-            capital: 100000.0
-        },
-        {
-            symbol: 'SAN-OBLP',
-            startDate: new Date('2020-06-30'),  
-            startValue: 1500.86, 
-            capital: 100000.0
-        },
-        {
-            symbol: 'SAN-AKP',                
-            startDate: new Date('2020-06-25'), 
-            startValue: 0.0, 
-            capital: 1000.0
-        },
-        {
-            symbol: 'PEK-OBL',                
-            startDate: new Date('2020-08-10'), 
-            startValue: 0.0,
-            capital: 200000.0
-        }
-    ]
-
-    let fundsValues = await storage.getFundsValues()
-
-    email.sendEmail('[Funds]', '<div>'+JSON.stringify(arr,' ',3)+'</div>' +  '<div>'+JSON.stringify(fundsValues,' ',3)+'</div>')
-}
 
 
 
