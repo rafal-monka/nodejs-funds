@@ -69,7 +69,7 @@ mojefundusze.perform()
 
 
 //schedule word reminder
-cronParams = "0 55 13-16 * * 1-6"; 
+cronParams = "0 15 13-16 * * 1-6"
 console.log('schedule', new Date(), cronParams)
 
 var j = schedule.scheduleJob(cronParams, function(){ 

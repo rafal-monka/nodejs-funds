@@ -207,8 +207,9 @@ exports.perform = async () => {
         //finalCallBack
         (param) => {         
             let arr = []
+
             //store
-            param.forEach(el => {                               
+            param.sort((a,b) => a.output.title > b.output.title ? 1: -1).forEach(el => {                               
                 //temp
                 arr.push({
                     symbol: el.item.symbol, 
