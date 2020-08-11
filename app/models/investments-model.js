@@ -5,6 +5,7 @@ const investmentSchema = new mongoose.Schema({
     symbol: String, 
     dateStart: Date,
     capital: Number,
+    type: String,
     created_at: { type: Date, default: new Date() },
     updated_at: { type: Date, default: null }
 })
