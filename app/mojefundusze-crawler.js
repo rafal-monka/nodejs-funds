@@ -195,10 +195,10 @@ exports.loadFundValues = () => {
 
 exports.perform = async () => {
     let dictionary = await storage.getDictionary()
-    console.log(dictionary)
+    //console.log(dictionary)
     // return 
     let pad = new Launcher(
-        7, 
+        10, 
         dictionary, 
         //callFunction,
         getFund,

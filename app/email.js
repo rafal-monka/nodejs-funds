@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
 })
 
 exports.sendEmail = (subject, body) => {
-console.log('sendEmail');
+    // console.log('sendEmail');
     const mailOptions = {
         from: 'RM Funds',
         to: process.env.MAIL_TO,
@@ -19,7 +19,7 @@ console.log('sendEmail');
         html: '<!DOCTYPE html>'+
               '<html><head><title>Funds</title></head>'+
               '<body>'+
-              '<h4>Funds</h4>'+
+              '<h4>Funds, DB='+process.env.DATABASE_URI+'</h4>'+
               '<pre>'+body+'</pre>'+
               '</body></html>'
     };

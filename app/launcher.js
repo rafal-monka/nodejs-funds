@@ -13,7 +13,7 @@ module.exports = class Launcher  {
     }
 
     run () {
-        console.log('run');
+        // console.log('run');
         if (this.items) {
             this.status = 'RUNNING';
             for (var i=0; i < Math.min(this.max_parralel, this.items.length); i++ ) {
@@ -26,11 +26,11 @@ module.exports = class Launcher  {
     }
 
     launchItem () {        
-        console.log('launchItem()   ', this.lastLaunchItem, this.items.length);
+        //console.log('launchItem()   ', this.lastLaunchItem, this.items.length);
         if (this.lastLaunchItem < this.items.length) {
             this.runningCount++;
             let item = this.items[this.lastLaunchItem++];
-            console.log('launched item', item)
+            //console.log('launched item', item)
             this.callFunction(item)
             .then(value => {
                 // fulfillment
@@ -52,7 +52,7 @@ module.exports = class Launcher  {
                 if (this.runningCount > 0) {
                     this.launchItem();
                 } else {
-                    console.log('done', this.lastLaunchItem);
+                    //console.log('done', this.lastLaunchItem);
                     this.status = 'DONE';
                     this.finalCallbackFunction(this.output);    
                 }

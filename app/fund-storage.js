@@ -1,6 +1,6 @@
 const Fund = require('./models/funds-model')
 const Investment = require('./models/investments-model')
-const Dictionary = require('./models/dict-model')
+const Dictionary = require('./models/dicts-model')
 const Result = require('./models/result-model')
 
 exports.getDictionary = async () => {
@@ -40,7 +40,7 @@ exports.delete = (symbol) => {
 exports.store = (symbol, date, value) => {
     Fund.find( {symbol: symbol, date: date}, function (err, docs) {
         if (docs.length===0) {
-            console.log('Storing fund '+symbol+' for date '+date+' with value of '+value)
+            console.log('Storing fund '+symbol+' for date '+date.toISOString().substr(0,10)+' with value of '+value)
             let fund = new Fund({
                 symbol: symbol,
                 date: date,
@@ -54,7 +54,7 @@ exports.store = (symbol, date, value) => {
                     console.log('Error in Fund.save()', e)
                 })
         } else {
-            console.log('Fund '+symbol+'for date '+date+' already exists')
+            console.log('Fund '+symbol+' for date '+date.toISOString().substr(0,10)+' already exists')
             if (value === docs[0].value) {
                 console.log('OK values are the same.')
             } else {
