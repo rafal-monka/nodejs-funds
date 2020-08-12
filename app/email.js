@@ -19,7 +19,7 @@ exports.sendEmail = (subject, body) => {
         html: '<!DOCTYPE html>'+
               '<html><head><title>Funds</title></head>'+
               '<body>'+
-              '<h4>Funds, DB='+process.env.DATABASE_URI+'</h4>'+
+              '<h4>Funds</h4>'+
               '<pre>'+body+'</pre>'+
               '</body></html>'
     };
