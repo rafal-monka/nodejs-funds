@@ -24,6 +24,12 @@ app.get("/home", (req, res) => {
     res.json({ message: "Welcome to Funds application." });
 });
 
+app.get("/perform", (req, res) => {
+    mojefundusze.perform()
+    res.json({ message: "Perform called." });
+});
+
+
 //make default URL for SPA
 const buildLocation = 'public'; //include public folder with SPA app
 app.use(express.static(path.join(__dirname, buildLocation)));
@@ -49,7 +55,12 @@ app.listen(PORT, () => {
 initDatabase()
 
 // money.import("2020-06-01", "2020-08-06")
+
+// let res = money.importPEKOBL(2012, 2020, "2012-07-05", "2020-08-11")
+// console.log(res)
+// money.importFund("PEK-OBL", "2012-01-01", "2012-01-31")
 // return 
+
 // mojefundusze.delete('SKA-OBL')
 // mojefundusze.loadFundValues()
 // mojefundusze.loadInvestment()
@@ -67,9 +78,8 @@ initDatabase()
 //run 
 mojefundusze.perform() 
 
-
 //schedule word reminder
-cronParams = "0 0,30,45 14-15 * * 1-6" //16:00 - 17:45
+cronParams = "0 0,30,45 14-16 * * 1-6" //16:00 - 17:45
 console.log('schedule', new Date(), cronParams)
 
 var j = schedule.scheduleJob(cronParams, function(){ 
