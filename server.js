@@ -79,7 +79,7 @@ initDatabase()
 mojefundusze.perform() 
 
 //schedule word reminder
-cronParams = "0 0,30,45 14-16 * * 1-6" //16:00 - 17:45
+cronParams = "0 0 15-16 * * 1-6" //17:00 - 18:00
 console.log('schedule', new Date(), cronParams)
 
 var j = schedule.scheduleJob(cronParams, function(){ 
