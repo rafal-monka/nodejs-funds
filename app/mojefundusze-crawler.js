@@ -240,7 +240,6 @@ getFund = (item) => {
             params: { }
         })
     } catch (error) {
-        console.log('###Error: getFund');
         console.error(error);
     }
 }
@@ -259,10 +258,8 @@ parseFund = (item, html) => {
         }
         return result;        
 	} catch (e) {
-        console.error('###Error. parseFund');
-        console.error(item);        
-        console.log(e);
-		//console.log(html);
+        console.error(e);        
+        console.log(item);
 		return result;
 	}
 }

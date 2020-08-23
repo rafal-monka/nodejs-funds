@@ -2,6 +2,7 @@ const Fund = require('./models/funds-model')
 const Investment = require('./models/investments-model')
 const Dictionary = require('./models/dicts-model')
 const Result = require('./models/result-model')
+const RoiController = require('./controllers/rois-controller.js')
 
 exports.getDictionary = async () => {
     let res = await Dictionary.find({})
@@ -40,7 +41,7 @@ exports.delete = (symbol) => {
 exports.store = (symbol, date, value) => {
     Fund.find( {symbol: symbol, date: date}, function (err, docs) {
         if (docs.length===0) {
-            console.log('Storing fund '+symbol+' for date '+date.toISOString().substr(0,10)+' with value of '+value)
+            //console.log('Storing fund '+symbol+' for date '+date.toISOString().substr(0,10)+' with value of '+value)
             let fund = new Fund({
                 symbol: symbol,
                 date: date,
@@ -48,19 +49,23 @@ exports.store = (symbol, date, value) => {
             })
             fund.save()
                 .then(function (result ){
-                    console.log(result)
+                    //console.log(result)                       
                 })
                 .catch(e => {
                     console.log('Error in Fund.save()', e)
                 })
         } else {
-            console.log('Fund '+symbol+' for date '+date.toISOString().substr(0,10)+' already exists')
+            //console.log('Fund '+symbol+' for date '+date.toISOString().substr(0,10)+' already exists')
             if (value === docs[0].value) {
-                console.log('OK values are the same.')
+                //console.log('OK values are the same.')
             } else {
-                console.log('ERROR different values')
+                console.log('ERROR different values. Fund '+symbol+' for date '+date.toISOString().substr(0,10)+' '+value+' <> '+docs[0].value)
             }
         }
+
+        //###only these funds
+        //###REM when migrate
+        if (['PEK-OBL', 'NN-OBL', 'SAN-OBLP', 'SAN-OBL'/*, 'SKB-OBL', 'QUE-DLK'*/].indexOf(symbol) > -1) RoiController.calcFundROI(symbol, 1)
     })
 }
 

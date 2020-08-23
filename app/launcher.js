@@ -49,7 +49,7 @@ module.exports = class Launcher  {
                 });
 
                 //check queue
-                if (this.runningCount > 0) {
+                if (this.runningCount > 0 || (this.runningCount === 0 && this.max_parralel === 1)) {
                     this.launchItem();
                 } else {
                     //console.log('done', this.lastLaunchItem);
