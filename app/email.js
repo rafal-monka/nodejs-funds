@@ -27,7 +27,7 @@ exports.sendEmail = (subject, body) => {
       if (error) {
           console.log('Email error: ',error);
       } else {
-          console.log('Email sent: ' + info.response);
+          console.log(new Date()+'Email sent: ' + info.response);
       }
     });    
 }
