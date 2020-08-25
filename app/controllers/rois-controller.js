@@ -2,7 +2,7 @@ const Roi = require('./../models/rois-model')
 const Funds = require('./../models/funds-model')
 
 exports.getAll = (req, res, next) => {  
-    Roi.find({date: {$gt: new Date(req.params.datemin)}}) 
+    Roi.find({ /*symbol: "PEK-OBL",*/ date: {$gt: new Date(req.params.datemin)}}) 
         .then(function (result) {
             let arr = []
             result.forEach(item => {
@@ -125,7 +125,7 @@ exports.calcFundROI = (symbol, endOnPosition) => {
                 }
 
                 arr = arr.sort((a,b) => a.fund.date-b.fund.date).filter(
-                    item => item.rois.reduce((total, item) => total + (item.v === null ? 0 : 1), 0) > 0
+                    item => item.rois.reduce((total, item) => total + (item.v === null? 0 : 1), 0) > 0
                 )
 
 // console.log('arr[0][last]', arr[0], arr[arr.length-1])
