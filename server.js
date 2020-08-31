@@ -10,7 +10,9 @@ const initDatabase = require('./config/database')
 const schedule = require('node-schedule')
 
 const mojefundusze = require("./app/mojefundusze-crawler.js");
-const money = require("./app/money-crawler.js");
+//const money = require("./app/money-crawler.js");
+const money2 = require("./app/money2-crawler.js");
+
 // ###unused: const observations = require("./app/controllers/observations.js");
 // ###unused: const status = require("./app/status.js");
 
@@ -26,7 +28,7 @@ app.get("/home", (req, res) => {
 
 app.get("/perform", (req, res) => {
     mojefundusze.perform()
-    res.json({ message: "Perform called." });
+    res.json({ message: "Perform called. Wait for email." });
 });
 
 
@@ -49,24 +51,25 @@ app.use("/api", require('./app/routes/'))
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
-  console.log(`Server Crawler is running on port ${PORT}.`);
+  console.log(`Server Funds is running on port ${PORT}.`);
 });
 
 //init database
 initDatabase()
 
+// money2.run(new Date("2020-08-29"))
+// money2.getCSV('TFI6771', new Date('2020-04-01'),new Date('2020-04-30'))
+// return
 
 // FUND STORAGE !!! --> REM when migrate
 // money.importFund('SAN-OBL', 'TFI112', 2002, 2020, "2002-08-20", "2020-07-01")
 // money.importFund('SAN-OBLP', 'TFI4562', 2010, 2020, "2010-11-16", "2020-07-01")
 // money.importFund('NN-OBL', 'TFI6771', 1999, 2020, "1999-02-24", "2020-07-02")
 // money.importFund('PEK-OBL', 'TFI8172', 2016, 2020, "2016-10-24", "2020-08-11")
-
 // money.importFund('QUE-DLK', 'TFI5438', 2008, 2020, "2008-03-28", "2020-08-11")
 // money.importFund('SAN-AKP', 'TFI1', 1998, 2020, "1998-04-02", "2020-08-11")
 // money.importFund('SKB-SWZ', 'TFI4635', 2011, 2020, "2011-05-11", "2020-08-11")
 // money.importFund('SKB-OBL', 'TFI66', 1999, 2020, "1999-04-14", "2020-08-11")
-
 // return 
 
 //run 
