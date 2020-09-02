@@ -10,6 +10,8 @@ const TFIMetaDataSchema = new mongoose.Schema({
     frameDateTo: Date,
     direction: Number,
     status: String,
+    lra: Number,
+    lrb: Number,
     created_at: { type: Date, default: new Date() },
     updated_at: { type: Date, default: null }
 })

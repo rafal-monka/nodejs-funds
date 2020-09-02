@@ -18,7 +18,7 @@ const DIRECTION_LEFT = -1
 
 let currentDate
 let queue = []
-// let queueChecks = []
+let queueChecks = []
 
 getYYYYMMDD = (date) => {
     return date.toISOString().substring(0,10)
@@ -56,7 +56,8 @@ setNewFrame = async (tfi, currentDate, frame) => {
         }
         await TFIMetaData.update(tfi.symbol, {
             frameDateFrom: ret.dateFrom,
-            frameDateTo: ret.dateTo
+            frameDateTo: ret.dateTo,
+            updated_at: new Date()
         })
     } else {
         ret = {
@@ -83,6 +84,8 @@ console.log(symbol, 'SAVING', /*queue[symbol].count, queue[symbol].recs.length*/
             })
         })
     })
+    queue[symbol].length = 0
+    delete queue[symbol]
 console.log(symbol, 'insertMany', count)
     await TFIvalues.insertMany(recArr, function (err, docs) {
         if (err){ 
@@ -91,10 +94,10 @@ console.log(symbol, 'insertMany', count)
             console.log("Multiple documents inserted to Collection", docs.length);
         }
     });
-    queue[symbol] = []
+    
 
 // console.log(symbol, 'Canceling...')
-    // clearTimeout(queueChecks[symbol])    
+    clearTimeout(queueChecks[symbol])    
 
     if (initDate !== null && lastDate !== null) {
         await TFIMetaData.update(symbol, {
@@ -103,14 +106,16 @@ console.log(symbol, 'insertMany', count)
             frameDateFrom: null, 
             frameDateTo: null,
             direction: null,
-            status: 'OK'
+            status: 'OK',
+            updated_at: new Date()
         })   
     } else {
         await TFIMetaData.update(symbol, {  
             frameDateFrom: null, 
             frameDateTo: null,
             direction: null,                      
-            status: 'OK'
+            status: 'OK',
+            updated_at: new Date()
         }) 
     }
     resolve('RESOLVED-'+symbol)
@@ -159,7 +164,8 @@ processFrame = async (tfi, frame, cacheDates, records, resolve) => {
                 if (lastDate > cacheDates.actualLastDate || cacheDates.actualLastDate === null) {
                     cacheDates.actualLastDate = lastDate
                     await TFIMetaData.update(tfi.symbol, {
-                        lastDate: lastDate
+                        lastDate: lastDate,
+                        updated_at: new Date()
                     })
                 }
                 //@@@save & set new window frame
@@ -233,7 +239,8 @@ callFunction = async (tfi) => {
                 frameDateFrom: frame.dateFrom, 
                 frameDateTo: frame.dateTo,
                 direction: frame.direction,
-                status: 'PENDING' 
+                status: 'PENDING',
+                updated_at: new Date() 
             })
         }                
     }               
@@ -246,26 +253,31 @@ callFunction = async (tfi) => {
     return new Promise(async function(resolve, reject) {
         //resolve('TEST')
         //return
-        if (frame.dateFrom <= frame.dateTo) {
-            self.getCSV(tfi.symbol, frame.dateFrom, frame.dateTo, 
-                (recs) => processFrame(tfi, frame, cacheDates, recs, resolve)
-            )
-            // if (queueChecks[tfi.symbol] === undefined) queueChecks[tfi.symbol] = []    
-            // queueChecks[tfi.symbol] = setInterval( ()=> {
-            //     console.log(tfi.symbol, 'Checking...', queue[tfi.symbol].length)
-            // }, 3000)
-        } else {
-            reject(tfi.symbol+' Rejected. Invalid dates '+frame.dateFrom, frame.dateTo)
-        }
-    })
+        // try {
+            if (frame.dateFrom <= frame.dateTo) {
+                self.getCSV(tfi.symbol, frame.dateFrom, frame.dateTo, 
+                    (recs) => processFrame(tfi, frame, cacheDates, recs, resolve)
+                )
+                
+                if (queueChecks[tfi.symbol] === undefined) queueChecks[tfi.symbol] = []    
+                queueChecks[tfi.symbol] = setInterval( ()=> {
+                    console.log(tfi.symbol, 'Checking...', queue[tfi.symbol].length)
+                }, 1000)
 
+            } else {
+                reject(tfi.symbol+' Rejected. Invalid dates '+frame.dateFrom, frame.dateTo)
+            }
+        // } catch (e) {
+        //     console.log('PROMISE EXCEPTION', e)
+        // }
+    })//@@@???.catch(e => { console.log('PROMISE EXCEPTION2', e) })
 }
 
-exports.run = (currentDate) => {
+exports.run = (currentDate, symbol) => {
     this.currentDate = new Date(currentDate)
     let pad = new Launcher(
         2, 
-        TFI.getList(),//.slice(0,1), 
+        TFI.getList(symbol),//.slice(0,1), 
         //callFunction,
         callFunction,
         //callbackFunction,
@@ -299,7 +311,11 @@ exports.getCSV = async (symbol, dateFrom, dateTo, callback) => {
     if (queue[symbol] === undefined) queue[symbol] = []    
 
     //let self = this
-    let res = await axios.post( BASE_URL, qs.stringify(requestBody), config)//.then(res => {
+    try {
+        let res = await axios.post( BASE_URL, qs.stringify(requestBody), config)//.then(res => {
+        if (res.data.substring(0,9) === '<!DOCTYPE') {
+            callback([])
+        }
         let input = res.data.replace('\nLiczba wierszy ograniczona do 50','')
         //console.log('res', input)
         csv( input, {
@@ -334,7 +350,23 @@ exports.getCSV = async (symbol, dateFrom, dateTo, callback) => {
             //resolveCallback()
         })
     //})
+    } catch (e) {
+        throw new Error('HTTP ERROR')        
+    }
 }
 
+exports.getQueue = (symbol) => {
+    //console.log('queue[symbol].length', queue[symbol].length)
+    let out = []
+    Object.getOwnPropertyNames(queue).map((item, index) => {
+        if (index>0) {
+            out.push({
+                symbol: item, 
+                count: queue[item].length
+            })
+        }
+    })
+    return out
+}
 
 

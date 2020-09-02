@@ -31,6 +31,16 @@ app.get("/perform", (req, res) => {
     res.json({ message: "Perform called. Wait for email." });
 });
 
+// app.get("/api/run/:symbol", (req, res) => {    
+//     console.log('/api/run/:symbol', req.params.symbol)
+//     money2.run(new Date(), req.params.symbol)
+//     res.json({ message: "TFI called." })
+// });
+
+app.get("/api/queue/:symbol", (req, res) => {    
+    let queue = money2.getQueue(req.params.symbol)
+    res.json(queue)
+});
 
 
 //make default URL for SPA
@@ -57,9 +67,9 @@ app.listen(PORT, () => {
 //init database
 initDatabase()
 
-// money2.run(new Date("2020-08-29"))
+// money2.run(new Date())
 // money2.getCSV('TFI6771', new Date('2020-04-01'),new Date('2020-04-30'))
-// return
+//return
 
 // FUND STORAGE !!! --> REM when migrate
 // money.importFund('SAN-OBL', 'TFI112', 2002, 2020, "2002-08-20", "2020-07-01")
@@ -76,7 +86,7 @@ initDatabase()
 mojefundusze.perform() 
 
 //schedule word reminder
-cronParams = "0 0 15-16 * * 1-6" //17:00 - 18:00
+cronParams = "0 0 16 * * 1-5" //18:00 Mon-Fri
 console.log('schedule', new Date(), cronParams)
 
 var j = schedule.scheduleJob(cronParams, function(){ 
