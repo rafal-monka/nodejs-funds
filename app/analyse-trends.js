@@ -5,7 +5,9 @@ const AnalyseTrendsCtrl = require('./controllers/analyse-trends-controller')
 
 callFunctionLR = async (tfi) => {
     console.log('runCalc callFunction', tfi)
-    await TFIMetaDataCtrl.update(tfi.symbol, {status: 'CALC-STARTED'}) 
+    await TFIMetaDataCtrl.update(tfi.symbol, {
+        status: 'CALC-STARTED'
+    }) 
     return new Promise(function(resolve, reject) {
         try {            
             AnalyseTrendsCtrl.calcLR(999999, tfi.symbol, resolve, reject)
