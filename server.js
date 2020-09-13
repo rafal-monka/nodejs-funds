@@ -76,7 +76,7 @@ initDatabase()
 // money2.run(new Date())
 // money2.getCSV('TFI6771', new Date('2020-04-01'),new Date('2020-04-30'))
 // moneyValueLoader.run(99999, new Date(), 'TFI4562')
-return
+// return
 
 // FUND STORAGE !!! --> REM when migrate
 // money.importFund('SAN-OBL', 'TFI112', 2002, 2020, "2002-08-20", "2020-07-01")
