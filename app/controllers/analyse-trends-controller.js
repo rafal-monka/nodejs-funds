@@ -12,21 +12,26 @@ exports.calcLRFunds = (wssClientID, symbols) => {
 }
 
 fLR = (inputArr) => {
-    let avg = {
-        x: Math.round(inputArr.reduce((total, item) => total+item[0], 0) / inputArr.length * 100) / 100,
-        y: Math.round(inputArr.reduce((total, item) => total+item[1], 0) / inputArr.length * 100) / 100
+        let lr = {}
+        try {
+        let avg = {
+            x: Math.round(inputArr.reduce((total, item) => total+item[0], 0) / inputArr.length * 100) / 100,
+            y: Math.round(inputArr.reduce((total, item) => total+item[1], 0) / inputArr.length * 100) / 100
+        }
+        let sumCounter = inputArr.reduce((total, item) => total + (item[0] - avg.x)*(item[1] - avg.y), 0)
+        let sumDenominator = inputArr.reduce((total, item) => total + Math.pow( (item[0] - avg.x), 2), 0)
+        let a = sumCounter / sumDenominator
+        lr = {
+            a: a,
+            b: avg.y - a * avg.x
+        } 
+        lr.y0 = Math.round((lr.a * inputArr[0][0] + lr.b) * 100) / 100
+        lr.yn = Math.round((lr.a * inputArr[inputArr.length-1][0] + lr.b) * 100) / 100
+        lr.dx = inputArr[inputArr.length-1][0] - inputArr[0][0]
+        lr.dx2 = (inputArr[inputArr.length-1][0] - inputArr[0][0]) / ONE_DAY
+    } catch (e) {
+        console.log('Error in fLR', inputArr, e.toString())
     }
-    let sumCounter = inputArr.reduce((total, item) => total + (item[0] - avg.x)*(item[1] - avg.y), 0)
-    let sumDenominator = inputArr.reduce((total, item) => total + Math.pow( (item[0] - avg.x), 2), 0)
-    let a = sumCounter / sumDenominator
-    let lr = {
-        a: a,
-        b: avg.y - a * avg.x
-    } 
-    lr.y0 = Math.round((lr.a * inputArr[0][0] + lr.b) * 100) / 100
-    lr.yn = Math.round((lr.a * inputArr[inputArr.length-1][0] + lr.b) * 100) / 100
-    lr.dx = inputArr[inputArr.length-1][0] - inputArr[0][0]
-    lr.dx2 = (inputArr[inputArr.length-1][0] - inputArr[0][0]) / ONE_DAY
     return lr
 }
 
