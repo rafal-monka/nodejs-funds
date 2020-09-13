@@ -72,7 +72,7 @@ exports.loadValues = (wssClientID, symbols) => {
 }
 
 exports.notifyClient = (wssClientID, event, symbol, data) => {
-    // console.log('notifyClient', event, symbol)
+    //console.log('notifyClient', event, symbol)
     let response = { 
         event: event,
         symbol: symbol,
