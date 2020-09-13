@@ -30,7 +30,7 @@ fLR = (inputArr) => {
         lr.dx = inputArr[inputArr.length-1][0] - inputArr[0][0]
         lr.dx2 = (inputArr[inputArr.length-1][0] - inputArr[0][0]) / ONE_DAY
     //} catch (e) {
-        console.log('Error in fLR', inputArr, e.toString())
+    //    console.log('Error in fLR', inputArr, e.toString())
     //}
     return lr
 }
