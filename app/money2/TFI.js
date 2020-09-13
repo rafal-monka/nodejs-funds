@@ -2908,8 +2908,11 @@ const TFIs = [
     {symbol: "TFI8221", name: "Wratislavia Real Estate Fundusz Inwestycyjny Zamknięty Aktywów Niepublicznych"},
 ]
 
-exports.getList = (symbol) => {
-    let ret = TFIs.filter(tfi => symbol !== '' ? tfi.symbol === symbol : true)
-    console.log('getList', ret)
+exports.getList = (symbols) => {
+    //console.log('getList.symbols', symbols)
+    let ret = TFIs.filter(tfi => symbols.findIndex(symbol => tfi.symbol === symbol) >-1)
+    //ret = TFIs.filter(tfi => ['TFI6771','TFI8172','TFI5438','TFI1','TFI112','TFI4562','TFI66','TFI4635'].indexOf(tfi.symbol) > -1)
+    //ret = TFIs.filter(tfi => tfi.name.indexOf('Santander') > -1)
+    //console.log('getList', ret)
     return ret
 }

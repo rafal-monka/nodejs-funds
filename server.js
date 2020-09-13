@@ -9,9 +9,12 @@ const path = require('path')
 const initDatabase = require('./config/database')
 const schedule = require('node-schedule')
 
-const mojefundusze = require("./app/mojefundusze-crawler.js");
+const wss = require('./wss')
+
+const mojefundusze = require("./app/mojefundusze-crawler.js")
+const moneyValueLoader = require("./app/money-values-loader.js")
 //const money = require("./app/money-crawler.js");
-const money2 = require("./app/money2-crawler.js");
+// const money2 = require("./app/money2-crawler.js");
 
 // ###unused: const observations = require("./app/controllers/observations.js");
 // ###unused: const status = require("./app/status.js");
@@ -37,10 +40,10 @@ app.get("/perform", (req, res) => {
 //     res.json({ message: "TFI called." })
 // });
 
-app.get("/api/queue/:symbol", (req, res) => {    
-    let queue = money2.getQueue(req.params.symbol)
-    res.json(queue)
-});
+// app.get("/api/queue/:symbol", (req, res) => {    
+//     let queue = money2.getQueue(req.params.symbol)
+//     res.json(queue)
+// });
 
 
 //make default URL for SPA
@@ -60,16 +63,20 @@ app.use("/*", (req, res, next) => {
 app.use("/api", require('./app/routes/'))
 
 const PORT = process.env.PORT;
-app.listen(PORT, () => {
-  console.log(`Server Funds is running on port ${PORT}.`);
+var server = app.listen(PORT, () => {
+    wss.init(server)
+    console.log(`Server Funds is running on port ${PORT}.`);
 });
 
 //init database
 initDatabase()
 
+// moneyValueLoader.delete('TFI1')
+
 // money2.run(new Date())
 // money2.getCSV('TFI6771', new Date('2020-04-01'),new Date('2020-04-30'))
-//return
+// moneyValueLoader.run(99999, new Date(), 'TFI4562')
+// return
 
 // FUND STORAGE !!! --> REM when migrate
 // money.importFund('SAN-OBL', 'TFI112', 2002, 2020, "2002-08-20", "2020-07-01")

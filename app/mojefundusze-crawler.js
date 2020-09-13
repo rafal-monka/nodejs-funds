@@ -204,6 +204,10 @@ exports.perform = async () => {
         getFund,
         //callbackFunction,
         parseFund,
+        //catchFunction
+        (e, item)=> {
+            console.log('Launcher catchFunction', e)
+        },
         //finalCallBack
         (param) => {         
             let arr = []

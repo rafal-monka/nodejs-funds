@@ -12,6 +12,13 @@ const TFIMetaDataSchema = new mongoose.Schema({
     status: String,
     lra: Number,
     lrb: Number,
+    lastDiff: Number,
+    lastDiffPercent: Number,
+    diff_lra: Number,
+    diff_lrb: Number,
+    errorMsg: String,
+    CONST_LAST_PERIOD_VALUE: Number,
+    CONST_LAST_PERIOD: Number,
     created_at: { type: Date, default: new Date() },
     updated_at: { type: Date, default: null }
 })

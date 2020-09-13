@@ -113,6 +113,10 @@ exports.importFund = (symbol, moneySymbol, yearFrom, yearTo, dFrom, dTo)=> {
         (item, value)=> {
             //console.log(item, value)
         },
+        //catchFunction
+        (e, item)=> {
+            console.log('Launcher catchFunction', e)
+        },
         //finalCallBack
         (param) => {         
             console.log('final', param)                                                         
