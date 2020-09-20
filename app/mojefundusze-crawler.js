@@ -3,6 +3,7 @@ var DomParser = require('dom-parser');
 var Launcher = require("./launcher.js");
 const storage = require('./fund-storage')
 const email = require("./email")
+const RoiCtrl = require("./controllers/rois-controller.js");
 
 const BASE_URL = "https://mojefundusze.pl/Fundusze/Inwestycyjne/";
 
@@ -206,7 +207,7 @@ exports.perform = async () => {
         parseFund,
         //catchFunction
         (e, item)=> {
-            console.log('Launcher catchFunction', e)
+            console.log('mojefundusze-crawler Launcher catchFunction', e.toString().substring(0,100))
         },
         //finalCallBack
         (param) => {         
@@ -231,7 +232,12 @@ exports.perform = async () => {
             )                                   
         } 
     );
-    pad.run();
+    pad.run()
+
+    //calc ROI for the last date, after 30 seconds delay
+    if (false) setTimeout( () => {
+        RoiCtrl.calcRoi4All(1)
+    }, 30*1000) //@@@JERE!!!
 }
 
 

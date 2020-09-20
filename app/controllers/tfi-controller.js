@@ -28,8 +28,10 @@ exports.update = async (symbol, obj) => {
     this.notifyClient(999999, 'METADATA-UPDATE', symbol, result)
 }
 
-exports.getAllMetadata = (req, res, next) => {  
-    TFIMetaData.find().then(function (result) {
+exports.getMetadata = (req, res, next) => {
+    let query = {}
+    if (req.params.symbol !== '*') query = {symbol: req.params.symbol}  
+    TFIMetaData.find(query).then(function (result) {
         res.status(200).json(result)            
     })
     .catch (next) 

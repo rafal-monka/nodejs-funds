@@ -4,7 +4,7 @@ const router = express.Router()
 const TFIController = require('../controllers/tfi-controller.js')
 
 router.get('/values/:symbol', TFIController.getValues)
-router.get('/metadata', TFIController.getAllMetadata)
+router.get('/metadata/:symbol', TFIController.getMetadata)
 // router.get("/run/:symbol", (req, res) => {    
 //     console.log('/api/run/:symbol', req.params.symbol)
 //     money2.run(new Date(), req.params.symbol)

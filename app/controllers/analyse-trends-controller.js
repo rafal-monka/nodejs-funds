@@ -3,9 +3,12 @@ const TFIValues = require('../models/tfi-values-model')
 const trendAnalyzer = require("../analyse-trends.js")
 const wss = require('./../../wss')
 
-const ONE_DAY = 24*60*60*1000
+const CONST_ONE_DAY = 24*60*60*1000
 const CONST_LAST_PERIOD_VALUE = 22 * 12 * 5
 const CONST_LAST_PERIOD = 22 * 3
+
+CONST_ONE_YEAR = 365 * CONST_ONE_DAY
+CONST_THRESHOLD_LRA = 3.0 / CONST_ONE_YEAR //=3% per year
 
 exports.calcLRFunds = (wssClientID, symbols) => {
     trendAnalyzer.run(wssClientID, symbols)   
@@ -28,7 +31,7 @@ fLR = (inputArr) => {
         lr.y0 = Math.round((lr.a * inputArr[0][0] + lr.b) * 100) / 100
         lr.yn = Math.round((lr.a * inputArr[inputArr.length-1][0] + lr.b) * 100) / 100
         lr.dx = inputArr[inputArr.length-1][0] - inputArr[0][0]
-        lr.dx2 = (inputArr[inputArr.length-1][0] - inputArr[0][0]) / ONE_DAY
+        lr.dx2 = (inputArr[inputArr.length-1][0] - inputArr[0][0]) / CONST_ONE_DAY
     //} catch (e) {
     //    console.log('Error in fLR', inputArr, e.toString())
     //}
@@ -65,13 +68,16 @@ exports.calcLR = async (wssClientID, symbol, resolve, reject) => {
                         ]
                     })
                     let diff_lr = fLR(diffArr)
-
+                    let lastDiff = Math.round( (ordered[ordered.length-1][1] - (lr.a * ordered[ordered.length-1][0] + lr.b)) * 100 ) / 100
+                    let lastDiffPercent = Math.round( (ordered[ordered.length-1][1] - (lr.a * ordered[ordered.length-1][0] + lr.b)) / ordered[ordered.length-1][1] * 100 * 100 ) / 100 //percentage diff
+                    
                     resolve({
                         lr: lr,
-                        lastDiff: Math.round( (ordered[ordered.length-1][1] - (lr.a * ordered[ordered.length-1][0] + lr.b)) * 100 ) / 100,
-                        lastDiffPercent:  Math.round( (ordered[ordered.length-1][1] - (lr.a * ordered[ordered.length-1][0] + lr.b)) / ordered[ordered.length-1][1] * 100 * 100 ) / 100, //percentage diff
+                        lastDiff: lastDiff,
+                        lastDiffPercent: lastDiffPercent,
                         //diffArr: diffArr,
                         diff_lr: diff_lr,
+                        look: (lr.a >= CONST_THRESHOLD_LRA && lastDiff < 0 && diff_lr.a > CONST_THRESHOLD_LRA),
                         CONST_LAST_PERIOD_VALUE: CONST_LAST_PERIOD_VALUE,
                         CONST_LAST_PERIOD: CONST_LAST_PERIOD
                     })

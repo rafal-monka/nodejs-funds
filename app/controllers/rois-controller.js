@@ -1,5 +1,6 @@
 const Roi = require('./../models/rois-model')
 const Funds = require('./../models/funds-model')
+const Investments = require('./../models/investments-model')
 
 exports.getAll = (req, res, next) => {  
     Roi.find({ /*symbol: "PEK-OBL",*/ date: {$gt: new Date(req.params.datemin)}}) 
@@ -58,9 +59,9 @@ const saveROI = (symbol, date, value, rois) => {
                 roi1: rois[7].v 
             })
             roi.save().then(res => {
-                console.log('Saved ROI', symbol, date, res)
+                //console.log('Saved ROI', symbol, date, res)
             }).catch(e => {
-                console.log('Error saving ROI', e)
+                console.log('Error saving ROI', symbol, date, roi, e)
             })
         } else {
             if (value === docs[0].value 
@@ -89,6 +90,7 @@ exports.delete = (req, res) => {
 }
 
 exports.calcFundROI = (symbol, endOnPosition) => {
+    console.log('calcFundROI', symbol)
     const MONTH = 21
     let periods = [24, 18, 12, 9, 6, 3, 2, 1]
 
@@ -128,8 +130,8 @@ exports.calcFundROI = (symbol, endOnPosition) => {
                     item => item.rois.reduce((total, item) => total + (item.v === null? 0 : 1), 0) > 0
                 )
 
-// console.log('arr[0][last]', arr[0], arr[arr.length-1])
-                //storage
+//  console.log('arr[0][last]', arr[0], arr[arr.length-1])
+                //storage                
                 arr.forEach(item=>saveROI(item.fund.symbol, item.fund.date, item.fund.value, item.rois))
 
                 resolve(arr)
@@ -158,7 +160,32 @@ exports.calc = (req, res, next) => {
     }).catch(next)
 };
 
+exports.calcRoi4All = (endOnPosition) => {
+    let self = this
+    Investments.find({}) 
+        .then(function (result) {
+            //res.json(  )
+            [...new Set(result.map(inv => inv.symbol))]
+            .forEach(symbol => self.calcFundROI(symbol, endOnPosition)
+                .then(arr => {
+                    console.log('then', symbol)
+                })
+                .catch(err => {
+                    console.log('calcRoi4All/calcFundROI', err)
+                })
+            )
+        })
+        .catch(err => {
+            console.log('calcRoi4All/Investments.find', err)
+        })
+}
 
+exports.calcAll = (req, res, next) => {
+        this.calcRoi4All(0)
+        res.json({ 
+            message: "ROI Calc called for All"
+        })
+}
 
 exports.getAllPURE_OLD = (req, res, next) => {  
     Roi.find({}) 

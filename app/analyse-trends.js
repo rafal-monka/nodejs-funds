@@ -35,6 +35,7 @@ exports.run = (wssClientID, symbols) => {
                 lastDiffPercent: value.lastDiffPercent,
                 diff_lra: value.diff_lr.a,
                 diff_lrb: value.diff_lr.b,
+                look: value.look,
                 CONST_LAST_PERIOD_VALUE: value.CONST_LAST_PERIOD_VALUE,
                 CONST_LAST_PERIOD: value.CONST_LAST_PERIOD,
                 errorMsg: null
@@ -52,6 +53,7 @@ exports.run = (wssClientID, symbols) => {
                 lastDiffPercent: null,
                 diff_lra: null,
                 diff_lrb: null,
+                look: null,        
                 errorMsg: error
             })
         },

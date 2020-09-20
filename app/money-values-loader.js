@@ -164,10 +164,10 @@ exports.run = (wssClientID, currentDate, symbols) => {
         callbackFunction,
         //catchFunction
         (error, item)=> {
-            console.log('Launcher catchFunction', error, item)
+            console.log('money-values-loader - Launcher catchFunction', error.toString().substring(0,100), item)
             TFIMetaDataCtrl.update(item.symbol, {                        
                 status: 'ERROR',
-                errorMsg: error
+                errorMsg: error.toString().substring(0,100)
             })
         },
         //finalCallBack

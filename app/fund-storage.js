@@ -63,7 +63,7 @@ exports.store = (symbol, date, value) => {
             }
         }
 
-        //###only these funds
+        //###only these funds @@@HERE!!!
         //###REM when migrate
         if (['PEK-OBL', 'NN-OBL', 'SAN-OBLP', 'SAN-OBL'/*, 'SKB-OBL', 'QUE-DLK'*/].indexOf(symbol) > -1) RoiController.calcFundROI(symbol, 1)
     })
