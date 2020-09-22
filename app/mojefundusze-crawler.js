@@ -226,7 +226,7 @@ exports.perform = async () => {
             })
 
             //email
-            email.sendEmail('Funds '+new Date(), 
+            email.sendEmail('Funds (mojefundusze.pl)'+new Date(), 
                 '<a href="https://funds-apps.apps.ca-central-1.starter.openshift-online.com">Look</a>'
                 +'<div><pre><small>'+JSON.stringify(param.map(item=>item.output), ' ', 2)+'</small></pre></div>'
             )                                   

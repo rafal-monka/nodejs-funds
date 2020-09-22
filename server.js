@@ -13,8 +13,11 @@ const wss = require('./wss')
 
 const mojefundusze = require("./app/mojefundusze-crawler.js")
 const moneyValueLoader = require("./app/money-values-loader.js")
-//const money = require("./app/money-crawler.js");
-// const money2 = require("./app/money2-crawler.js");
+//const money = require("./app/money-crawler.js")
+// const money2 = require("./app/money2-crawler.js")
+const aol = require("./app/analizyonline-crawler.js")
+
+// const storage = require('./app/fund-storage')
 
 // ###unused: const observations = require("./app/controllers/observations.js");
 // ###unused: const status = require("./app/status.js");
@@ -76,6 +79,13 @@ initDatabase()
 // money2.run(new Date())
 // money2.getCSV('TFI6771', new Date('2020-04-01'),new Date('2020-04-30'))
 // moneyValueLoader.run(99999, new Date(), 'TFI4562')
+
+// storage.store('NN-OBL', new Date('2020-09-17'), 347.38)
+// storage.store('NN-OBL', new Date('2020-09-18'), 347.38)
+// storage.store('PEK-OBL', new Date('2020-09-17'), 13.41)
+// storage.store('PEK-OBL', new Date('2020-09-18'), 13.42)
+// storage.store('QUE-DLK', new Date('2020-09-17'), 75.39)
+// storage.store('QUE-DLK', new Date('2020-09-18'), 75.38)
 // return
 
 // FUND STORAGE !!! --> REM when migrate
@@ -90,14 +100,16 @@ initDatabase()
 // return 
 
 //run 
-mojefundusze.perform() 
+// mojefundusze.perform() 
+aol.perform()
 
 //schedule word reminder
 cronParams = "0 0 16 * * 1-5" //18:00 Mon-Fri
 console.log('schedule', new Date(), cronParams)
 
 var j = schedule.scheduleJob(cronParams, function(){ 
-    mojefundusze.perform()
+    // mojefundusze.perform()
+    aol.perform()
 });
 
 //[eof]
