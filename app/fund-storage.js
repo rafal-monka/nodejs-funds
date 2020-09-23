@@ -95,18 +95,18 @@ exports.storeInvestment = (inv) => {
 
 exports.checkFundsAgaistTFIvalues = async () => {
     console.log('checkFundsAgaistTFIvalues()')
-    const CONST_MIN_DATE = "2020-06-30"
+    const CONST_MIN_DATE = new Date("2020-06-30")
 
     let dict = await Dictionary.find()
-    // console.log('dict', dict)
+    console.log('dict', dict)
 
     let funds = await Fund.find({
-        date: { $gte: new Date(CONST_MIN_DATE) }
+        date: { $gte: CONST_MIN_DATE }
     }).sort({date: 1})
     // console.log('funds', funds[0])
 
     let tfivalues = await TFIvalues.find({
-        date: { $gte: new Date(CONST_MIN_DATE) }
+        date: { $gte: CONST_MIN_DATE }
     }).sort({date: 1})
     // console.log('tfivalues', tfivalues[0])
 
