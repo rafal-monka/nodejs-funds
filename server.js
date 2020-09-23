@@ -17,7 +17,7 @@ const moneyValueLoader = require("./app/money-values-loader.js")
 // const money2 = require("./app/money2-crawler.js")
 const aol = require("./app/analizyonline-crawler.js")
 
-// const storage = require('./app/fund-storage')
+const storage = require('./app/fund-storage')
 
 // ###unused: const observations = require("./app/controllers/observations.js");
 // ###unused: const status = require("./app/status.js");
@@ -33,8 +33,15 @@ app.get("/home", (req, res) => {
 });
 
 app.get("/perform", (req, res) => {
-    mojefundusze.perform()
+    //mojefundusze.perform()
+    aol.perform()
     res.json({ message: "Perform called. Wait for email." });
+});
+
+app.get("/perform/check", (req, res) => {
+    //mojefundusze.perform()
+    storage.checkFundsAgaistTFIvalues()
+    res.json({ message: "Perform CHECK called. Check out logs" });
 });
 
 // app.get("/api/run/:symbol", (req, res) => {    
@@ -104,7 +111,7 @@ initDatabase()
 aol.perform()
 
 //schedule word reminder
-cronParams = "0 0 16 * * 1-5" //18:00 Mon-Fri
+cronParams = "0 0 15-16 * * 1-5" //18:00 Mon-Fri
 console.log('schedule', new Date(), cronParams)
 
 var j = schedule.scheduleJob(cronParams, function(){ 

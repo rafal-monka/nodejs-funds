@@ -13,6 +13,8 @@ const { rejects } = require('assert')
 
 const BASE_URL = "https://www.money.pl/fundusze/archiwum/fundusze/"
 
+const CONST_ARCHEO_DATE = new Date("1920-01-01")// new Date("2020-01-01")
+
 const MIN_DATE = new Date("2000-01-01")
 const DIRECTION_RIGHT = 1
 const DIRECTION_LEFT = -1
@@ -95,7 +97,7 @@ processFrame = async (tfi, frame, cacheDates, records, resolve, reject) => {
                     finish(tfi.symbol, resolve, cacheDates.potentialInitDate, cacheDates.potentialLastDate)              
                 } else {
                     //###???
-                    finish(tfi.symbol, resolve, new Date("1920-01-01"), new Date("2020-01-01")) //###???
+                    finish(tfi.symbol, resolve, CONST_ARCHEO_DATE, CONST_ARCHEO_DATE) //###???
                 }
             } else {
                 let lastDate = new Date(records[0][0])
