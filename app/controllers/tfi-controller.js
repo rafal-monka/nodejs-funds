@@ -1,5 +1,6 @@
-const TFIValues = require('../models/tfi-values-model')
+const TFIValues = require('./../models/tfi-values-model')
 const TFIMetaData = require('./../models/tfi-metadata-model')
+const TFILook = require('./../models/tfi-look-model')
 const moneyValueLoader = require("./../money-values-loader.js")
 const wss = require('./../../wss')
 
@@ -32,6 +33,13 @@ exports.getMetadata = (req, res, next) => {
     let query = {}
     if (req.params.symbol !== '*') query = {symbol: req.params.symbol}  
     TFIMetaData.find(query).then(function (result) {
+        res.status(200).json(result)            
+    })
+    .catch (next) 
+}
+
+exports.getLook = (req, res, next) => {
+    TFILook.find({symbol: req.params.symbol}).then(function (result) {
         res.status(200).json(result)            
     })
     .catch (next) 

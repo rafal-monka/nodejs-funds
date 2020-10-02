@@ -1,5 +1,6 @@
-
 const TFIValues = require('../models/tfi-values-model')
+const TFILook = require('../models/tfi-look-model')
+
 const trendAnalyzer = require("../analyse-trends.js")
 const wss = require('./../../wss')
 
@@ -46,6 +47,7 @@ exports.calcLR = async (wssClientID, symbol, resolve, reject) => {
         TFIValues
             .find({ symbol: symbol }) 
             .then(function (result) {
+                console.log('[1]', symbol)
                 try {
                     let ordered = result.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                                         .filter((item, index) => index>=Math.max(0,result.length-CONST_LAST_PERIOD_VALUE))
@@ -71,6 +73,7 @@ exports.calcLR = async (wssClientID, symbol, resolve, reject) => {
                     let lastDiff = Math.round( (ordered[ordered.length-1][1] - (lr.a * ordered[ordered.length-1][0] + lr.b)) * 100 ) / 100
                     let lastDiffPercent = Math.round( (ordered[ordered.length-1][1] - (lr.a * ordered[ordered.length-1][0] + lr.b)) / ordered[ordered.length-1][1] * 100 * 100 ) / 100 //percentage diff
                     
+                    console.log('[2]', symbol)
                     resolve({
                         lr: lr,
                         lastDiff: lastDiff,
@@ -88,4 +91,37 @@ exports.calcLR = async (wssClientID, symbol, resolve, reject) => {
         } catch (e) {
             reject(e.toString())
         }
+}
+
+
+exports.saveLook = (symbol) => {
+    console.log('saveLook()... '+symbol)
+    TFILook.find( {symbol: symbol}, function (err, docs) {
+        if (docs.length===0) {
+
+            TFIValues
+            .find({ symbol: symbol }) 
+            .sort({ date: -1})
+            .limit(1)
+            .then(function (result) {
+                console.log('result', result)
+                console.log('Storing look '+symbol+' for date '+result[0].date+' with value of '+result[0].value)
+                let look = new TFILook({
+                    symbol: symbol,
+                    lookDate: result[0].date,
+                    value: result[0].value
+                })
+                look.save()
+                    .then(function (savedResult){
+                        console.log(savedResult)                       
+                    })
+                    .catch(e => {
+                        console.log('Error in saveLook()', e.toString())
+                    })
+            })
+
+        } else {
+            console.log('Look '+symbol+' already is in look')
+        }
+    })
 }

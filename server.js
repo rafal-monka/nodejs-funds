@@ -104,7 +104,8 @@ initDatabase()
 // money.importFund('SAN-AKP', 'TFI1', 1998, 2020, "1998-04-02", "2020-08-11")
 // money.importFund('SKB-SWZ', 'TFI4635', 2011, 2020, "2011-05-11", "2020-08-11")
 // money.importFund('SKB-OBL', 'TFI66', 1999, 2020, "1999-04-14", "2020-08-11")
-// return 
+
+//return 
 
 //run 
 // mojefundusze.perform() 
