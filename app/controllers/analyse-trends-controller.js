@@ -94,34 +94,36 @@ exports.calcLR = async (wssClientID, symbol, resolve, reject) => {
 }
 
 
-exports.saveLook = (symbol) => {
+exports.saveLook = (symbol, a, b) => {
     console.log('saveLook()... '+symbol)
-    TFILook.find( {symbol: symbol}, function (err, docs) {
-        if (docs.length===0) {
 
-            TFIValues
-            .find({ symbol: symbol }) 
-            .sort({ date: -1})
-            .limit(1)
-            .then(function (result) {
-                console.log('result', result)
-                console.log('Storing look '+symbol+' for date '+result[0].date+' with value of '+result[0].value)
-                let look = new TFILook({
-                    symbol: symbol,
-                    lookDate: result[0].date,
-                    value: result[0].value
-                })
-                look.save()
-                    .then(function (savedResult){
-                        console.log(savedResult)                       
+    TFIValues
+    .find({ symbol: symbol }) 
+    .sort({ date: -1})
+    .limit(1)
+    .then(function (result) {
+        //console.log('result', result[0])
+        TFILook.find( {symbol: symbol, lookDate: result[0].date}, function (err, docs) {
+            if (docs.length===0) {            
+                    console.log('Storing LOOK. Fund '+symbol+' for date '+result[0].date+' with value of '+result[0].value)
+                    let look = new TFILook({
+                        symbol: symbol,
+                        lookDate: result[0].date,
+                        value: result[0].value,
+                        lra: a,
+                        lrb: b
                     })
-                    .catch(e => {
-                        console.log('Error in saveLook()', e.toString())
-                    })
-            })
+                    look.save()
+                        .then(function (savedResult){
+                            console.log(savedResult)                       
+                        })
+                        .catch(e => {
+                            console.log('Error in saveLook()', e.toString())
+                        })        
+            } else {
+                console.log('Look '+symbol+' for date '+result[0].date+' already is in look')
+            }
+        })
 
-        } else {
-            console.log('Look '+symbol+' already is in look')
-        }
     })
 }

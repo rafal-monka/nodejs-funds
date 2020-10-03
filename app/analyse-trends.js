@@ -42,10 +42,9 @@ exports.run = (wssClientID, symbols) => {
             }) 
 
             //save TFIs which meet "look" criteria
-            console.log('callback [3]', item.symbol, value.look)
             if (value.look) {
-                console.log('Saving look...'+item.symbol)
-                AnalyseTrendsCtrl.saveLook(item.symbol)
+                //console.log('Saving look...'+item.symbol)
+                AnalyseTrendsCtrl.saveLook(item.symbol, value.lr.a, value.lr.b)
             }
             return true
         },
