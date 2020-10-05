@@ -40,7 +40,7 @@ exports.perform = async () => {
             //email
             //return
             email.sendEmail('Funds (AnalizyOnline)'+new Date(), 
-                '<a href="https://funds-apps.apps.ca-central-1.starter.openshift-online.com">Look</a>'
+                '<a href="https://rm-app-funds.herokuapp.com">Look</a>'
                 +'<div><pre><small>'+JSON.stringify(param.map(item=>item.output), ' ', 2)+'</small></pre></div>'
             )                                   
         } 
