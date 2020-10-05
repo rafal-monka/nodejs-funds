@@ -15,7 +15,7 @@ exports.sendEmail = (subject, body) => {
     const mailOptions = {
         from: 'RM Funds',
         to: process.env.MAIL_TO,
-        subject: subject,
+        subject: process.env.ENVNAME+subject,
         html: '<!DOCTYPE html>'+
               '<html><head><title>Funds</title></head>'+
               '<body>'+
