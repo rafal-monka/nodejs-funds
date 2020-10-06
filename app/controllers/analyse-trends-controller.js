@@ -8,8 +8,8 @@ const CONST_ONE_DAY = 24*60*60*1000
 const CONST_LAST_PERIOD_VALUE = 22 * 12 * 5
 const CONST_LAST_PERIOD = 22 * 3
 
-CONST_ONE_YEAR = 365 * CONST_ONE_DAY
-CONST_THRESHOLD_LRA = 3.0 / CONST_ONE_YEAR //=3% per year
+const CONST_ONE_YEAR = 365 * CONST_ONE_DAY
+const CONST_THRESHOLD_LRA = 3.0 / CONST_ONE_YEAR //=3% per year
 
 exports.calcLRFunds = (wssClientID, symbols) => {
     trendAnalyzer.run(wssClientID, symbols)   
