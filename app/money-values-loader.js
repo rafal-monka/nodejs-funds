@@ -202,13 +202,14 @@ callFunction = async (tfi) => {
         frame.dateFrom = utils.getFirstDayOfMonth(this.currentDate, 0)
         frame.dateTo = this.currentDate
         frame.direction = DIRECTION_LEFT
-        console.log(tfi.symbol, 'TFIMetaDataCtrl.create')
+console.log(tfi.symbol, 'TFIMetaDataCtrl.create')
         await TFIMetaDataCtrl.create(tfi.symbol, tfi.name, null, null, frame.dateFrom, frame.dateTo)
     } else {  
         if (res.lastDate  !== null) {
             cacheDates.actualLastDate = res.lastDate
-        }                         
-        if (res.frameDateFrom !== null && res.frameDateTo !== null) {                
+        }   
+// console.log('res.frameDateFrom', res.frameDateFrom.getFullYear() !== 1970)                      
+        if (res.frameDateFrom !== null && res.frameDateTo !== null && res.frameDateFrom.getFullYear() !== 1970) {                
             frame.dateFrom = res.frameDateFrom 
             frame.dateTo = res.frameDateTo
             frame.direction = res.direction
@@ -223,7 +224,14 @@ callFunction = async (tfi) => {
                 frame.dateFrom = moment(res.lastDate).add(1, 'days').toDate()
                 if (frame.dateFrom > this.currentDate) frame.dateFrom = this.currentDate
                 let lastDayOfMonth = utils.getLastDayOfMonth(res.lastDate, 0)
+
+                //bypass for money.pl error - "Błąd: Data początkowa musi być mniejsza od końcowej"
+                if (frame.dateFrom.toISOString().substr(0,10) === lastDayOfMonth.toISOString().substr(0,10)) { 
+                    frame.dateFrom = moment(frame.dateFrom).add(-1, 'days').toDate()  
+                }
+
                 frame.dateTo = (this.currentDate < lastDayOfMonth ? this.currentDate : lastDayOfMonth) 
+
                 frame.direction = DIRECTION_RIGHT                
 //console.log(tfi.symbol, 'DIRECTION_RIGHT', frame)        
             //if initDate is NOT set, scan "left" from currentDate
