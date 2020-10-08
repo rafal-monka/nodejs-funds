@@ -105,7 +105,7 @@ exports.calcFundROI = (symbol, endOnPosition) => {
                 let last = endOnPosition === 1 ? funds.length-1 : 0
 
                 while (i >= last) {
-//console.log(i)
+console.log(i)
                     let rois = []
                     periods.forEach(period => {
                         let delta = period * MONTH

@@ -21,6 +21,7 @@ const storage = require('./app/fund-storage')
 
 // ###unused: const observations = require("./app/controllers/observations.js");
 // ###unused: const status = require("./app/status.js");
+const RoiController = require("./app/controllers/rois-controller.js")
 
 const app = express();
 
@@ -93,6 +94,8 @@ initDatabase()
 // storage.store('PEK-OBL', new Date('2020-09-18'), 13.42)
 // storage.store('QUE-DLK', new Date('2020-09-17'), 75.39)
 // storage.store('QUE-DLK', new Date('2020-09-18'), 75.38)
+
+// RoiController.calcFundROI('SKB-OBL', 0)
 // return
 
 // FUND STORAGE !!! --> REM when migrate
