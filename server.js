@@ -113,6 +113,7 @@ initDatabase()
 //run 
 // mojefundusze.perform() 
 aol.perform()
+return 
 
 //schedule word reminder
 cronParams = "0 0 15-16 * * 1-5" //18:00 Mon-Fri
