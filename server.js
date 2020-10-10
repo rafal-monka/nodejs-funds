@@ -8,20 +8,19 @@ const bodyParser = require("body-parser");
 const path = require('path')
 const initDatabase = require('./config/database')
 const schedule = require('node-schedule')
-
 const wss = require('./wss')
 
 const mojefundusze = require("./app/mojefundusze-crawler.js")
 const moneyValueLoader = require("./app/money-values-loader.js")
-//const money = require("./app/money-crawler.js")
-// const money2 = require("./app/money2-crawler.js")
+// ###unused: const money = require("./app/money-crawler.js")
+// ###unused: const money2 = require("./app/money2-crawler.js")
 const aol = require("./app/analizyonline-crawler.js")
 
 const storage = require('./app/fund-storage')
 
 // ###unused: const observations = require("./app/controllers/observations.js");
 // ###unused: const status = require("./app/status.js");
-const RoiController = require("./app/controllers/rois-controller.js")
+// ###unused: const RoiController = require("./app/controllers/rois-controller.js")
 
 const app = express();
 
@@ -44,18 +43,6 @@ app.get("/perform/check", (req, res) => {
     storage.checkFundsAgaistTFIvalues()
     res.json({ message: "Perform CHECK called. Check out logs" });
 });
-
-// app.get("/api/run/:symbol", (req, res) => {    
-//     console.log('/api/run/:symbol', req.params.symbol)
-//     money2.run(new Date(), req.params.symbol)
-//     res.json({ message: "TFI called." })
-// });
-
-// app.get("/api/queue/:symbol", (req, res) => {    
-//     let queue = money2.getQueue(req.params.symbol)
-//     res.json(queue)
-// });
-
 
 //make default URL for SPA
 const buildLocation = 'public'; //include public folder with SPA app
@@ -82,6 +69,47 @@ var server = app.listen(PORT, () => {
 //init database
 initDatabase()
 
+// mojefundusze.perform() 
+// aol.perform()
+
+//[eof]
+
+//-----------------temp
+
+// app.get("/api/run/:symbol", (req, res) => {    
+//     console.log('/api/run/:symbol', req.params.symbol)
+//     money2.run(new Date(), req.params.symbol)
+//     res.json({ message: "TFI called." })
+// });
+
+// app.get("/api/queue/:symbol", (req, res) => {    
+//     let queue = money2.getQueue(req.params.symbol)
+//     res.json(queue)
+// });
+
+//schedule word reminder
+// cronParams = "0 0 15-16 * * 1-5" //18:00 Mon-Fri
+// console.log('schedule', new Date(), cronParams)
+
+// var j = schedule.scheduleJob(cronParams, function(){ 
+//     // mojefundusze.perform()
+//     aol.perform()
+// });
+
+// testInv.forEach(item => {
+//     status.addItem(item.symbol)
+//     observations.load(item)
+// })
+
+// console.log(status.getInfo())
+// setTimeout(function() { 
+//     status.checkingStatus();    
+// }, status.CONST_INTERVAL);
+
+// mojefundusze.delete('SKA-OBL')
+// mojefundusze.loadFundValues()
+// mojefundusze.loadInvestment()
+
 // moneyValueLoader.delete('TFI1')
 
 // money2.run(new Date())
@@ -107,39 +135,3 @@ initDatabase()
 // money.importFund('SAN-AKP', 'TFI1', 1998, 2020, "1998-04-02", "2020-08-11")
 // money.importFund('SKB-SWZ', 'TFI4635', 2011, 2020, "2011-05-11", "2020-08-11")
 // money.importFund('SKB-OBL', 'TFI66', 1999, 2020, "1999-04-14", "2020-08-11")
-
-//return 
-
-//run 
-// mojefundusze.perform() 
-aol.perform()
-return 
-
-//schedule word reminder
-cronParams = "0 0 15-16 * * 1-5" //18:00 Mon-Fri
-console.log('schedule', new Date(), cronParams)
-
-var j = schedule.scheduleJob(cronParams, function(){ 
-    // mojefundusze.perform()
-    aol.perform()
-});
-
-//[eof]
-
-//-----------------temp
-// testInv.forEach(item => {
-//     status.addItem(item.symbol)
-//     observations.load(item)
-// })
-
-// console.log(status.getInfo())
-// setTimeout(function() { 
-//     status.checkingStatus();    
-// }, status.CONST_INTERVAL);
-
-
-
-
-// mojefundusze.delete('SKA-OBL')
-// mojefundusze.loadFundValues()
-// mojefundusze.loadInvestment()
