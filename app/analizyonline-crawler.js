@@ -54,7 +54,7 @@ getFund = (item) => {
     try {
         return axios({
             url: item.aolurl,
-            methog: 'get',
+            method: 'get',
             params: { }
         })
     } catch (error) {
