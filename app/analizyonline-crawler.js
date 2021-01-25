@@ -29,8 +29,8 @@ exports.perform = async () => {
             param.sort((a,b) => a.output.title > b.output.title ? 1: -1).forEach(el => {                               
                 //temp
                 arr.push({
-                    symbol: el.item.symbol, 
-                    date: new Date(el.output.date), 
+                    title: el.output.title, 
+                    date: new Date(el.output.date).toISOString().substring(0,10), 
                     value: el.output.value
                 })
                 console.log('==>', el.item.symbol, new Date(el.output.date), el.output.value)
@@ -39,9 +39,10 @@ exports.perform = async () => {
 
             //email
             //return
-            email.sendEmail('Funds (AnalizyOnline)'+new Date(), 
-                '<a href="https://rm-app-funds.herokuapp.com">Look</a>'
-                +'<div><pre><small>'+JSON.stringify(param.map(item=>item.output), ' ', 2)+'</small></pre></div>'
+            email.sendEmail('Funds (AnalizyOnline) '+new Date(), 
+                '<a href="https://rm-app-funds.herokuapp.com">Show panel</a>'
+                +'<br><br><a href="https://money.cnn.com/data/fear-and-greed/">Fear and greed</a>'
+                +'<div><pre><small>'+JSON.stringify(arr, ' ', 2)+'</small></pre></div>'
             )                                   
         } 
     );
