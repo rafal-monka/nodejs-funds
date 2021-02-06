@@ -5,8 +5,8 @@ const { resolve } = require('path')
 const moment = require('moment')
 
 const utils = require("./utils.js")
-const Launcher = require("./launcher.js")
-const TFI = require('./money2/TFI')
+// const Launcher = require("./launcher.js")
+// const TFI = require('./money2/TFI')
 const TFIMetaDataCtrl = require('./controllers/tfi-controller')
 const TFIvalues = require('./models/tfi-values-model')
 const { rejects } = require('assert')
@@ -19,7 +19,7 @@ const MIN_DATE = new Date("2000-01-01")
 const DIRECTION_RIGHT = 1
 const DIRECTION_LEFT = -1
 
-let currentDate
+let currentDateGlobal
 let queue = []
 
 exports.delete = (symbol) => {
@@ -104,7 +104,7 @@ processFrame = async (tfi, frame, cacheDates, records, resolve, reject) => {
                 if (lastDate > cacheDates.potentialLastDate || cacheDates.potentialLastDate === null) {
                     cacheDates.potentialLastDate = lastDate
                 }
-                newFrame = await setNewFrame(tfi, this.currentDate, frame)
+                newFrame = await setNewFrame(tfi, currentDateGlobal, frame)
 
                 if (newFrame.dateFrom !== null && newFrame.dateTo !== null) {
                     this.getCSV(tfi.symbol, newFrame.dateFrom, newFrame.dateTo, 
@@ -138,7 +138,7 @@ processFrame = async (tfi, frame, cacheDates, records, resolve, reject) => {
                     })
                 }
                 //@@@save & set new window frame
-                newFrame = await setNewFrame(tfi, this.currentDate, frame)
+                newFrame = await setNewFrame(tfi, currentDateGlobal, frame)
 
                 if (newFrame.dateFrom !== null && newFrame.dateTo !== null) {
                     this.getCSV(tfi.symbol, newFrame.dateFrom, newFrame.dateTo, 
@@ -155,36 +155,37 @@ processFrame = async (tfi, frame, cacheDates, records, resolve, reject) => {
     }    
 }
 
-exports.run = (wssClientID, currentDate, symbols) => {
-    this.currentDate = currentDate
-    let pad = new Launcher(
-        5, 
-        TFI.getList(symbols),//.slice(0,1), 
-        //callFunction,
-        callFunction,
-        //callbackFunction,
-        callbackFunction,
-        //catchFunction
-        (error, item)=> {
-            console.log('money-values-loader - Launcher catchFunction', error.toString().substring(0,100), item)
-            TFIMetaDataCtrl.update(item.symbol, {                        
-                status: 'ERROR',
-                errorMsg: error.toString().substring(0,100)
-            })
-        },
-        //finalCallBack
-        (param) => {         
-            console.log('final', param)                                                         
-        } 
-    );
-    pad.run();    
-}
+// exports.run = (wssClientID, currentDate, symbols) => {
+//     this.currentDate = currentDate
+//     let pad = new Launcher(
+//         5, 
+//         TFI.getList(symbols),//.slice(0,1), 
+//         //callFunction,
+//         callFunction,
+//         //callbackFunction,
+//         callbackFunction,
+//         //catchFunction
+//         (error, item)=> {
+//             console.log('money-values-loader - Launcher catchFunction', error.toString().substring(0,100), item)
+//             TFIMetaDataCtrl.update(item.symbol, {                        
+//                 status: 'ERROR',
+//                 errorMsg: error.toString().substring(0,100)
+//             })
+//         },
+//         //finalCallBack
+//         (param) => {         
+//             console.log('final', param)                                                         
+//         } 
+//     );
+//     pad.run();    
+// }
 
-callFunction = async (tfi) => {
-    console.log(tfi.symbol, 'callFunction')
+exports.callFunction = async (tfi) => {
+    console.log(tfi.symbol, 'money-values-loader.callFunction')
     let res = await TFIMetaDataCtrl.read(tfi.symbol)
     
-    this.currentDate = this.currentDate > new Date() ? new Date() : this.currentDate
+    currentDateGlobal = (currentDateGlobal > new Date() || currentDateGlobal === undefined) ? new Date() : currentDateGlobal
+    // console.log(tfi.symbol, 'currentDateGlobal', currentDateGlobal)    
     let frame = {
         dateFrom: null,
         dateTo: null,
@@ -197,47 +198,55 @@ callFunction = async (tfi) => {
         actualLastDate: null
     }
 
+    // console.log(tfi.symbol, 'callFunction, res', res)
+
     //new TFIMetaData record
     if (res === null) {
-        frame.dateFrom = utils.getFirstDayOfMonth(this.currentDate, 0)
-        frame.dateTo = this.currentDate
+        console.log(tfi.symbol, '[1]')        
+        frame.dateFrom = utils.getFirstDayOfMonth(currentDateGlobal, 0)
+        frame.dateTo = currentDateGlobal
         frame.direction = DIRECTION_LEFT
-console.log(tfi.symbol, 'TFIMetaDataCtrl.create')
-        await TFIMetaDataCtrl.create(tfi.symbol, tfi.name, null, null, frame.dateFrom, frame.dateTo)
+        await TFIMetaDataCtrl.create('MONEY', tfi.symbol, tfi.name, null, null, frame.dateFrom, frame.dateTo)
     } else {  
+        console.log(tfi.symbol, '[2]')
         if (res.lastDate  !== null) {
+            console.log(tfi.symbol, '[3]')
             cacheDates.actualLastDate = res.lastDate
         }   
-// console.log('res.frameDateFrom', res.frameDateFrom.getFullYear() !== 1970)                      
+console.log('[2-3] res', res.frameDateFrom, res.frameDateTo)                      
         if (res.frameDateFrom !== null && res.frameDateTo !== null && res.frameDateFrom.getFullYear() !== 1970) {                
             frame.dateFrom = res.frameDateFrom 
             frame.dateTo = res.frameDateTo
             frame.direction = res.direction
+            console.log(tfi.symbol, '[4] frame=', frame)
             await TFIMetaDataCtrl.update(tfi.symbol, {
                 status: 'RUNNING',
                 errorMsg: ''
             })
 // console.log(tfi.symbol, 'frame already set', frame)
         } else {
+            console.log(tfi.symbol, '[5]')
             //if initDate is set, scan "right" from lastDate
             if (res.initDate !== null && res.lastDate !== null) {
+                console.log(tfi.symbol, '[6]')
                 frame.dateFrom = moment(res.lastDate).add(1, 'days').toDate()
-                if (frame.dateFrom > this.currentDate) frame.dateFrom = this.currentDate
+                if (frame.dateFrom > currentDateGlobal) frame.dateFrom = currentDateGlobal
                 let lastDayOfMonth = utils.getLastDayOfMonth(res.lastDate, 0)
 
                 //bypass for money.pl error - "Błąd: Data początkowa musi być mniejsza od końcowej"
                 if (frame.dateFrom.toISOString().substr(0,10) === lastDayOfMonth.toISOString().substr(0,10)) { 
                     frame.dateFrom = moment(frame.dateFrom).add(-1, 'days').toDate()  
                 }
-
-                frame.dateTo = (this.currentDate < lastDayOfMonth ? this.currentDate : lastDayOfMonth) 
+                console.log(tfi.symbol, '[6.1]', currentDateGlobal, lastDayOfMonth)
+                frame.dateTo = (currentDateGlobal < lastDayOfMonth ? currentDateGlobal : lastDayOfMonth) 
 
                 frame.direction = DIRECTION_RIGHT                
 //console.log(tfi.symbol, 'DIRECTION_RIGHT', frame)        
             //if initDate is NOT set, scan "left" from currentDate
             } else {
-                frame.dateFrom = utils.getFirstDayOfMonth(this.currentDate, 0)
-                frame.dateTo = this.currentDate
+                console.log(tfi.symbol, '[7]')
+                frame.dateFrom = utils.getFirstDayOfMonth(currentDateGlobal, 0)
+                frame.dateTo = currentDateGlobal
                 frame.direction = DIRECTION_LEFT
             }
 
@@ -251,6 +260,7 @@ console.log(tfi.symbol, 'TFIMetaDataCtrl.create')
             })
         }                
     }               
+    console.log(tfi.symbol, '[8]')
 
     let self = this
     return new Promise(async function(resolve, reject) {
@@ -271,11 +281,11 @@ console.log(tfi.symbol, 'TFIMetaDataCtrl.create')
     })    
 }
 
-callbackFunction = /*async*/ (item, value)=> {
-    console.log(item.symbol, 'callbackFunction', item)
+exports.callbackFunction = /*async*/ (item, value)=> {
+    //console.log(item.symbol, 'callbackFunction', item)
     //console.log('value.records', value.records)
     //return 'OK'
-    console.log(item.symbol, 'insertMany [value.count]',  value.count)
+    //console.log(item.symbol, 'insertMany [value.count]',  value.count)
         /*await*/ TFIvalues.insertMany(value.records, function (err, docs) {
             if (err){ 
                 console.error(err);

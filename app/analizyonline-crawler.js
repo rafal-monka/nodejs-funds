@@ -22,7 +22,7 @@ exports.perform = async () => {
         //finalCallBack
         (param) => {         
             let arr = []
-            console.log('param', param)
+            //console.log('param', param)
             //return
 
             //store
@@ -33,7 +33,7 @@ exports.perform = async () => {
                     date: new Date(el.output.date).toISOString().substring(0,10), 
                     value: el.output.value
                 })
-                console.log('==>', el.item.symbol, new Date(el.output.date), el.output.value)
+                //console.log('==>', el.item.symbol, new Date(el.output.date), el.output.value)
                 storage.store(el.item.symbol, new Date(el.output.date), el.output.value)                
             })
 
@@ -51,7 +51,7 @@ exports.perform = async () => {
 
 
 getFund = (item) => {    
-    console.log('getFund', item.code);
+    //console.log('getFund', item.code);
     try {
         return axios({
             url: item.aolurl,

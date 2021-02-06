@@ -15,13 +15,15 @@ exports.calcLRFunds = (wssClientID, symbols) => {
     trendAnalyzer.run(wssClientID, symbols)   
 }
 
-fLR = (inputArr) => {
-    //let lr = {}
-    //try {
+fatLR = (inputArr) => {
+    // console.log('[fatLR]', inputArr.length);
+    // try {
+        // console.log('[fatLR][1]')
         let avg = {
             x: Math.round(inputArr.reduce((total, item) => total+item[0], 0) / inputArr.length * 100) / 100,
             y: Math.round(inputArr.reduce((total, item) => total+item[1], 0) / inputArr.length * 100) / 100
         }
+        // console.log('[fatLR][2]')
         let sumCounter = inputArr.reduce((total, item) => total + (item[0] - avg.x)*(item[1] - avg.y), 0)
         let sumDenominator = inputArr.reduce((total, item) => total + Math.pow( (item[0] - avg.x), 2), 0)
         let a = sumCounter / sumDenominator
@@ -33,10 +35,12 @@ fLR = (inputArr) => {
         lr.yn = Math.round((lr.a * inputArr[inputArr.length-1][0] + lr.b) * 100) / 100
         lr.dx = inputArr[inputArr.length-1][0] - inputArr[0][0]
         lr.dx2 = (inputArr[inputArr.length-1][0] - inputArr[0][0]) / CONST_ONE_DAY
-    //} catch (e) {
-    //    console.log('Error in fLR', inputArr, e.toString())
-    //}
-    return lr
+        // console.log('[fatLR][3]')
+        return lr
+    // } catch (e) {
+    //    console.log('Error in fatLR', inputArr, e.toString())
+    //    return {a: 0, b: 0}
+    // }    
 }
 
 exports.calcLR = async (wssClientID, symbol, resolve, reject) => { 
@@ -47,7 +51,7 @@ exports.calcLR = async (wssClientID, symbol, resolve, reject) => {
         TFIValues
             .find({ symbol: symbol }) 
             .then(function (result) {
-                console.log('[1]', symbol)
+                // console.log('[1]', symbol)
                 try {
                     let ordered = result.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                                         .filter((item, index) => index>=Math.max(0,result.length-CONST_LAST_PERIOD_VALUE))
@@ -56,9 +60,10 @@ exports.calcLR = async (wssClientID, symbol, resolve, reject) => {
     // if (index < 10) console.log(val.date, val.date.getTime(), index, val.value, ordered[0].value, (val.value - ordered[0].value)/ordered[0].value *100)
                         return [val.date.getTime(), 100*(val.value - ordered[0].value)/ordered[0].value ]
                     })
-                    
-                    let lr = fLR(ordered)
-
+                    // console.log('[2] ordered.length=', ordered.length)
+                    let lr = fatLR(ordered)
+                    // let lr = {    a: 1, b: 1 } 
+                    // console.log('[3]')
                     //difference (last period)
                     let diffArr = ordered
                         .filter((item, index) => index>=Math.max(0,ordered.length-CONST_LAST_PERIOD))
@@ -69,11 +74,13 @@ exports.calcLR = async (wssClientID, symbol, resolve, reject) => {
                             dval
                         ]
                     })
-                    let diff_lr = fLR(diffArr)
+                    console.log('[4]')
+                    let diff_lr = fatLR(diffArr)
+                    // diff_lr = { a: 2, b: 2 }
                     let lastDiff = Math.round( (ordered[ordered.length-1][1] - (lr.a * ordered[ordered.length-1][0] + lr.b)) * 100 ) / 100
                     let lastDiffPercent = Math.round( (ordered[ordered.length-1][1] - (lr.a * ordered[ordered.length-1][0] + lr.b)) / ordered[ordered.length-1][1] * 100 * 100 ) / 100 //percentage diff
                     
-                    console.log('[2]', symbol)
+                    // console.log('[5]', symbol)
                     resolve({
                         lr: lr,
                         lastDiff: lastDiff,

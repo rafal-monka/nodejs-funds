@@ -1,15 +1,20 @@
+const Launcher = require("./../launcher.js")
+const TFI = require('./../../config/TFI.js')
 const TFIValues = require('./../models/tfi-values-model')
 const TFIMetaData = require('./../models/tfi-metadata-model')
 const TFILook = require('./../models/tfi-look-model')
 const moneyValueLoader = require("./../money-values-loader.js")
+const bankierLoader = require("../bankier-values-loader.js")
+const analizyLoader = require("../analizy-values-loader.js")
 const wss = require('./../../wss')
 
 exports.read = (symbol) => {
     return TFIMetaData.findOne({symbol: symbol})    
 }
 
-exports.create = async (symbol, name, initDate, lastDate, frameDateFrom, frameDateTo) => {
+exports.create = async (source, symbol, name, initDate, lastDate, frameDateFrom, frameDateTo) => {
     let md = new TFIMetaData({
+        source: source,
         symbol: symbol,
         name: name,
         initDate: initDate, 
@@ -31,7 +36,14 @@ exports.update = async (symbol, obj) => {
 
 exports.getMetadata = (req, res, next) => {
     let query = {}
-    if (req.params.symbol !== '*') query = {symbol: req.params.symbol}  
+    if (req.params.symbol !== '*') {
+        //query = {symbol: req.params.symbol}  
+        let symbols = req.params.symbol.split(',').map(item => {return {symbol: item}})
+        //console.log(symbols)    
+            //let query = multi ? { $or: [ {symbol: 'TFI4409'}, {symbol: 'TFI8172'} ] } : { symbol: req.params.symbol } 
+        
+        query = { $or: symbols }
+    }
     TFIMetaData.find(query).then(function (result) {
         res.status(200).json(result)            
     })
@@ -45,9 +57,24 @@ exports.getLook = (req, res, next) => {
     .catch (next) 
 }
 
+exports.daleteValues = (req, res, next) => {
+    TFIValues.deleteMany({symbol: req.params.symbol}, function(err, result) {} )
+    res.status(200).json('Deleting...'+req.params.symbol)    
+}
+
 exports.getValues = (req, res, next) => {  
-    TFIValues.find({ symbol: req.params.symbol }) 
+//console.log('getValues req.params.symbol', req.params.symbol)
+    //let multi = req.params.symbol.indexOf(',') > -1
+    let symbols = req.params.symbol.split(',').map(item => {return {symbol: item}})
+//console.log(symbols)    
+    //let query = multi ? { $or: [ {symbol: 'TFI4409'}, {symbol: 'TFI8172'} ] } : { symbol: req.params.symbol } 
+
+    let query = { $or: symbols }
+//    console.log('query', query)
+
+    TFIValues.find( query ) 
         .then(function (result) {
+            console.log(result.length) 
             let arr = []
             result.forEach(item => {
                 //console.log('arr[item.symbol]', item.symbol, arr[item.symbol])
@@ -78,7 +105,15 @@ exports.getValues = (req, res, next) => {
 }
 
 exports.loadValues = (wssClientID, symbols) => { 
-    moneyValueLoader.run(wssClientID, new Date(), symbols)
+    // symbolsMoney = symbols.filter(item=>item.indexOf('TFI')>-1)
+    // symbolsBankier = symbols.filter(item=>item.indexOf('BANKIER')>-1)
+    // console.log('symbolsMoney', symbolsMoney)
+    // console.log('symbolsBankier', symbolsBankier)
+
+    run(wssClientID, new Date(), symbols)
+
+    //moneyValueLoader.run(wssClientID, new Date(), symbolsMoney)
+    //bankierLoader.run(wssClientID, new Date(), symbolsBankier)
 }
 
 exports.notifyClient = (wssClientID, event, symbol, data) => {
@@ -89,6 +124,60 @@ exports.notifyClient = (wssClientID, event, symbol, data) => {
         payload: data
     } 
     wss.notifyClient(wssClientID, response) 
+}
+
+
+run = (wssClientID, currentDate, symbols) => {
+    this.currentDate = currentDate
+    let pad = new Launcher(
+        5, 
+        TFI.getList(symbols),//.slice(0,1), 
+        //callFunction,
+        (item)=>{ 
+            console.log('item:',item)
+            switch (item.source.toUpperCase()) {
+                case 'MONEY': return moneyValueLoader.callFunction(item); break;
+                case 'BANKIER': return bankierLoader.callFunction(item); break;
+                case 'ANALIZY': return analizyLoader.callFunction(item); break;
+                default: console.log('Error callFunction. Item source '+item.source+' not supported') 
+            }
+        },
+        //callbackFunction,
+        (item, value)=>{ 
+            console.log('item:',item)
+            switch (item.source.toUpperCase()) {
+                case 'MONEY': return moneyValueLoader.callbackFunction(item, value); break;
+                case 'BANKIER': return bankierLoader.callbackFunction(item, value); break;
+                case 'ANALIZY': return analizyLoader.callbackFunction(item, value); break;
+                default: console.log('Error callbackFunction. Item source '+item.source+' not supported') 
+            }
+        },        
+        //catchFunction
+        (error, item)=> {
+            console.log('Launcher catchFunction', error.toString().substring(0,100), item)
+            this.update(item.symbol, {                        
+                status: 'ERROR',
+                errorMsg: error.toString().substring(0,100)
+            })
+        },
+        //finalCallBack
+        (param) => {         
+            console.log('final', param)                                                         
+        } 
+    );
+    pad.run();    
+}
+
+//--------------------------------temp
+exports.tempAddFieldSource = () => {
+    console.log('tempAddFieldSource')
+    TFIMetaData.updateMany( {} ,
+        { $set: { source: 'MONEY'} },
+        function(err, result) {}
+    )
+    TFIMetaData.find( { symbol: 'TFI8172'} ).then(function (result) {
+        console.log('count', result.length)            
+    }) 
 }
 
 //--------------------------------old

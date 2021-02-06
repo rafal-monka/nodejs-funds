@@ -1,10 +1,10 @@
 const Launcher = require("./launcher.js")
-const TFI = require('./money2/TFI')
+const TFI = require('../config/TFI')
 const TFIMetaDataCtrl = require('./controllers/tfi-controller')
 const AnalyseTrendsCtrl = require('./controllers/analyse-trends-controller')
 
 callFunctionLR = async (tfi) => {
-    console.log('runCalc callFunction', tfi)
+    //console.log('runCalc callFunction', tfi)
     await TFIMetaDataCtrl.update(tfi.symbol, {
         status: 'CALC-STARTED'
     }) 
@@ -50,7 +50,7 @@ exports.run = (wssClientID, symbols) => {
         },
         //catchFunction
         (error, item)=> {
-            //console.log('Launcher catchFunction', error, item)
+            console.log('Launcher catchFunction', error, item)
             TFIMetaDataCtrl.update(item.symbol, {                        
                 status: 'ERROR',
                 lastDiff: null,
@@ -65,7 +65,7 @@ exports.run = (wssClientID, symbols) => {
         },
         //finalCallBack
         (param) => {         
-            console.log('runCalc final', param)                                                         
+            console.log('runCalc final')                                                         
         } 
     );
     pad.run();    

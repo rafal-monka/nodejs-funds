@@ -2,6 +2,7 @@
 const mongoose = require('mongoose')
 
 const TFIMetaDataSchema = new mongoose.Schema({
+    source: String,
     symbol: String,
     name: String,
     initDate: Date,

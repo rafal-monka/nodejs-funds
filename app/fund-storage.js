@@ -66,7 +66,7 @@ exports.store = (symbol, date, value) => {
 
         //###only these funds @@@HERE!!!
         //###REM when migrate
-        if (['PEK-OBL', 'NN-OBL', 'SAN-OBLP', 'SAN-OBL', 'SKB-OBL', 'QUE-DLK'].indexOf(symbol) > -1) RoiController.calcFundROI(symbol, 1)
+        if (['PEK-OBL', 'NN-OBL', 'SAN-OBLP', 'SAN-OBL'].indexOf(symbol) > -1) RoiController.calcFundROI(symbol, 1)
     })
 }
 
@@ -141,7 +141,6 @@ exports.checkFundsAgaistTFIvalues = async () => {
                 }
             } else {
                 console.log(dict.symbol, tfi.symbol, tfi.date, 'No value in Funds', tfi.value)
-                //@@@store(dict.symbol, new Date(tfi.date), tfi.value)
             }
         })
         
