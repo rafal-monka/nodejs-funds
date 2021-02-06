@@ -527,20 +527,20 @@ exports.load = (req, res, next) => {
             //store
             if (true) param.forEach(async el => {                               
 
-                console.log('==>', el.item, el.output.length)
+                //console.log('==>', el.item, el.output.length)
                 el.output.forEach(cbond => {
                     msg.push(cbond.emission_id+' ['+cbond.date+'] '+cbond.indicative_price)
                     Cbonds.find( {emission_id: cbond.emission_id, date: cbond.date}, function (err, docs) {
                         //console.log(cbond.emission_id, 'docs.length', docs.length) 
                         if (docs.length === 0) {                                
                             if (cbond.indicative_price !== undefined) {
-                                console.log(cbond.emission_id+' new value for '+cbond.date)
+                                //console.log(cbond.emission_id+' new value for '+cbond.date)
                                 let obj = new Cbonds(cbond)
                                 obj.save()
                             }
                         } else {        
                             if  (cbond.indicative_price === docs[0].indicative_price) {
-                                console.log(cbond.emission_id+' value for '+cbond.date+' already exists. OK '+docs.length)
+                                //console.log(cbond.emission_id+' value for '+cbond.date+' already exists. OK '+docs.length)
                             } else {
                                 console.log(cbond.emission_id+' value for '+cbond.date+' already exists. Values NOT OK '+docs.length+'/'+cbond.indicative_price+'!='+docs[0].indicative_price)
                             }                            
@@ -561,7 +561,7 @@ exports.load = (req, res, next) => {
 }
 
 getCbond = async (item) => {
-    console.log(item, 'getCbond');
+    //console.log(item, 'getCbond');
     try {
         result = await Cbonds.find( {emission_id: item} ).sort( {date: -1} )
                 
@@ -590,7 +590,7 @@ getCbond = async (item) => {
 }
 
 checkCbond = (item, input) => {
-    console.log(item, 'checkCbond', input.data.length)
+    //console.log(item, 'checkCbond', input.data.length)
     return input.data
 }
 

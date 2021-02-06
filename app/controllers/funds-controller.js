@@ -104,7 +104,7 @@ setTable = (investment, obs, monthlyArr) => {
 }
 
 processInvestment = (funds, investment, monthlyArr) => {
-    console.log('monthlyArr', monthlyArr.length)
+    //console.log('monthlyArr', monthlyArr.length)
     let obs = []
     let lastObs
     let arr = funds
