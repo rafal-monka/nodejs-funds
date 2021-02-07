@@ -3,10 +3,11 @@ var DomParser = require('dom-parser');
 var Launcher = require("./launcher.js");
 const storage = require('./fund-storage')
 const email = require("./email")
+const TFI = require('../config/TFI')
 
-exports.perform = async () => {
-    let dictionary = await storage.getDictionary()
-    //console.log(dictionary)
+exports.perform = async (req) => {
+    console.log('analizyonline-crawler perform')
+    let dictionary = await storage.getDictionary()    
     // return 
     let pad = new Launcher(
         10, 
@@ -39,8 +40,10 @@ exports.perform = async () => {
 
             //email
             //return
-            email.sendEmail('Funds (AnalizyOnline) '+new Date(), 
-                '<a href="https://rm-app-funds.herokuapp.com">Show panel</a>'
+            email.sendEmail(' Funds (AnalizyOnline) '+new Date(), 
+                '<a href="'+req.protocol + '://' + req.get('host')+'">Show panel</a>'
+                +'<br><br>'
+                +'<a href="'+req.protocol + '://' + req.get('host')+'/compare/'+TFI.CONST_CBONDS_FUNDS+'/'+TFI.DATE_COMPARE_FROM.toISOString().substring(0,10)+'">Show comparition chart</a>'
                 +'<br><br><a href="https://money.cnn.com/data/fear-and-greed/">Fear and greed</a>'
                 +'<div><pre><small>'+JSON.stringify(arr, ' ', 2)+'</small></pre></div>'
             )                                   

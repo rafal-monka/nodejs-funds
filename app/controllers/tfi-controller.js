@@ -7,6 +7,7 @@ const moneyValueLoader = require("./../money-values-loader.js")
 const bankierLoader = require("../bankier-values-loader.js")
 const analizyLoader = require("../analizy-values-loader.js")
 const wss = require('./../../wss')
+const { json } = require("express")
 
 exports.read = (symbol) => {
     return TFIMetaData.findOne({symbol: symbol})    
@@ -60,6 +61,18 @@ exports.getLook = (req, res, next) => {
 exports.daleteValues = (req, res, next) => {
     TFIValues.deleteMany({symbol: req.params.symbol}, function(err, result) {} )
     res.status(200).json('Deleting...'+req.params.symbol)    
+}
+
+exports.loadMyBondTFIValues = (req, res, next) => {
+    console.log('TFI.myBondTFISymbols', TFI.myBondTFISymbols)  
+    req.params.symbols = TFI.myBondTFISymbols.split(",")
+    this.loadTFIValues(req, res, next)     
+    res.json('Loading started for '+TFI.myBondTFISymbols)
+}
+
+exports.loadTFIValues = (req, res, next) => {
+    console.log('loadTFIValues', req.params.symbols)   
+    run(0, new Date(), req.params.symbols)  
 }
 
 exports.getValues = (req, res, next) => {  
@@ -134,7 +147,7 @@ run = (wssClientID, currentDate, symbols) => {
         TFI.getList(symbols),//.slice(0,1), 
         //callFunction,
         (item)=>{ 
-            console.log('item:',item)
+            // console.log('item:',item)
             switch (item.source.toUpperCase()) {
                 case 'MONEY': return moneyValueLoader.callFunction(item); break;
                 case 'BANKIER': return bankierLoader.callFunction(item); break;
@@ -144,7 +157,7 @@ run = (wssClientID, currentDate, symbols) => {
         },
         //callbackFunction,
         (item, value)=>{ 
-            console.log('item:',item)
+            //console.log('item:',item)
             switch (item.source.toUpperCase()) {
                 case 'MONEY': return moneyValueLoader.callbackFunction(item, value); break;
                 case 'BANKIER': return bankierLoader.callbackFunction(item, value); break;
@@ -162,7 +175,7 @@ run = (wssClientID, currentDate, symbols) => {
         },
         //finalCallBack
         (param) => {         
-            console.log('final', param)                                                         
+            console.log('tfi-controller run final')                                                         
         } 
     );
     pad.run();    

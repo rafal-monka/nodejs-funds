@@ -34,7 +34,7 @@ app.get("/home", (req, res) => {
 
 app.get("/perform", (req, res) => {
     //mojefundusze.perform()
-    aol.perform()
+    aol.perform(req)
     res.json({ message: "Perform called. Wait for email." });
 });
 

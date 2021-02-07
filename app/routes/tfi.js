@@ -7,6 +7,9 @@ router.get('/values/:symbol', TFIController.getValues)
 router.get('/metadata/:symbol', TFIController.getMetadata)
 router.get('/look/:symbol', TFIController.getLook)
 router.get('/delete/:symbol', TFIController.daleteValues)
+router.get('/load/:symbols', TFIController.loadTFIValues)
+router.get('/loadmybonds', TFIController.loadMyBondTFIValues)
+
 // router.get("/run/:symbol", (req, res) => {    
 //     console.log('/api/run/:symbol', req.params.symbol)
 //     money2.run(new Date(), req.params.symbol)

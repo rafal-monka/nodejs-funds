@@ -4,10 +4,11 @@ var Launcher = require("../launcher.js")
 const utils = require("../utils.js")
 const email = require("../email")
 
+const TFI = require('../../config/TFI')
 const Cbonds = require('./../models/cbonds-model')
 const BASE_URL = 'https://cbonds.pl/api/chart/get_tradings/'
 
-const MIN_DATE_FROM = new Date('2020-01-01') //###min date 
+const MIN_DATE_FROM = new Date('2020-01-01') //###min date to load values cbonds
 
 const funds = ['NN-OBL','PEK-OBL','SAN-OBL']  
 let bondParams = []
@@ -33,7 +34,7 @@ bondParams['NN-OBL'] = [
     [20091, 0.49],
     [145407, 2.98],
     [700801, 1.19],
-    /*[78907, 0.99],*/ /*13.01.2021 jest jakiś skok w wycenie*/
+    /*[78907, 0.99],*/ /*13.01.2021 jest jakiś skok w wycenie Mexico, BONOS 7.75 29may2031*/
     [140693, 2.08],
     [35013, 0.94],
     [70023, 0.94],
@@ -251,7 +252,6 @@ createPivotTable = (arr) => {
 }
 
 exports.calculate = (req, res, next) => {
-
     //for testing
     if (false) {
         res.json( [
@@ -363,141 +363,9 @@ exports.calculate = (req, res, next) => {
         // })
 
     })
-
-return
-let arr = [
-    [1, "2021-02-01T00:00:00.000Z", 1],
-    [1, "2021-02-03T00:00:00.000Z", 2],
-    [2, "2021-02-03T00:00:00.000Z", 3],
-    [2, "2021-02-04T00:00:00.000Z", 4],
-    [2, "2021-02-05T00:00:00.000Z", 5],
-    [3, "2021-02-01T00:00:00.000Z", 6], 
-    [3, "2021-02-02T00:00:00.000Z", 7],
-    [3, "2021-02-03T00:00:00.000Z", 8],
-    [4, "2021-02-01T00:00:00.000Z", null]   
-  ]
-  let pivotArrFilled = createPivotTable(arr)
-  console.log(pivotArrFilled)
-  res.json(pivotArrFilled)
 }
 
-exports.calculateNEW = (req, res, next) => {
-    let effectiveDate = new Date(req.params.date)
-    Cbonds
-        .find( {date: { $lte: effectiveDate } } )
-        .sort({emission_id: 1, date: -1}) 
-        .then(function (result) {
-            let arr = result.map(element => {
-                let indicative_price
-                try {
-                    indicative_price = Number(element.indicative_price.replace(',','.').replace(' ',''))
-                } catch (e) {
-                    console.log('Can not create indicative_price', element.emission_id, element.date, element.indicative_price)
-                    indicative_price = null
-                }
-                return [
-                    1*element.emission_id, 
-                    element.date,  
-                    indicative_price                  
-                ]
-            })
 
-            let pivotArr = {}
-            arr.forEach(ele => {
-                pivotArr[el.date] = {}
-                pivotArr[el.date][elt.emission_id] = el.indicative_price
-            })
-
-            res.status(200).json(pivotArr)
-        })
-}
-
-//calculate daily weighted percentage change
-exports.calculateORY = (req, res, next) => {
-    let dictionary = getDictionary()
-    //console.log(dictionary.length, req.params.date)
-    let effectiveDate = new Date(req.params.date)
-
-    //return sorted by emission id (ASC) and date (DESC) 
-    Cbonds.find( {date: { $lte: effectiveDate } } ).sort({emission_id: 1, date: -1}) 
-        .then(function (result) {            
-            let arr = result
-                .filter(element => dictionary.indexOf(1*element.emission_id) > -1)
-                .map(element => {
-                try {
-                    return {
-                        emission_id: 1*element.emission_id, 
-                        date: element.date,
-                        indicative_price: Number(element.indicative_price.replace(',','.'))
-                    }
-                } catch (e) {
-                    console.log('error', element.emission_id, e.toString().substring(0,50))
-                    return {
-                        emission_id: 1*element.emission_id, 
-                        date: element.date,
-                        indicative_price: Number(element.buying_quote.replace(',','.'))    
-                    }
-                }
-            })
-
-            let outVal = [] 
-            funds.forEach(fund => {
-                //raw percentage sum
-                let sum = bondParams[fund].reduce( (result, element) => result + element[1], 0 )
-               
-                //weighted percentage sum
-                let percentWeighted = bondParams[fund].map( element => element[1] / sum * 100)
-                
-                //return two last values
-                let cbondValues = bondParams[fund].map(param => {
-                    return arr.filter(bond => bond.emission_id === param[0])
-                            .filter( (el, index) => index <= 1)
-                            .map(el => el.indicative_price/*{ 
-                                return {
-                                    e: el.emission_id,
-                                    v: Number(el.indicative_price.replace(',','.')), 
-                                    d: el.date
-                                    }
-                                }*/)
-                })
-                
-                //cbondValues = cbondValues.filter(item => item.length > 0)
-                cbondValues.forEach((item,index) => {
-                    if (item.length === 0) {
-                        item.push(1)
-                        item.push(1)
-                    }
-                })
-
-                cbondValues = cbondValues.map(cbondValue => {
-                    let change = (cbondValue[0] - cbondValue[1]) / cbondValue[1]
-                    cbondValue.push(change===null ? 0.0 : change)
-                    return cbondValue
-                })
-                
-                //cbondValues.forEach(item => console.log(item, item.length) )
-
-                //final weighted % change
-                let change = percentWeighted.reduce( (sum, element, i) => sum + (cbondValues[i][2] * element), 0)
-
-                outVal.push( {
-                    fund: fund,
-                    //show dates
-                    date: effectiveDate,
-                    arr: bondParams[fund].map(param => 
-                            arr.filter((bond, index) => bond.emission_id === param[0])
-                               .filter( (el, index) => index === 0).length//[0].date
-                    ),
-                    sum: sum,
-                    percentWeighted: percentWeighted,
-                    cbondValues: cbondValues,
-                    change: Math.round(change * 10000) / 10000
-                } )
-            })
-            res.status(200).json(outVal)
-        })
-        .catch (next) 
-}
 
 
 exports.load = (req, res, next) => {        
@@ -550,14 +418,15 @@ exports.load = (req, res, next) => {
                 })               
             })
             //email
-            email.sendEmail(' Cbonds (loaded)'+new Date(), 
-                '<div><pre><small>'+JSON.stringify(msg, ' ', 2)+'</small></pre></div>'
+            email.sendEmail(' Cbonds (loaded) '+new Date(), 
+                '<a href="'+req.protocol + '://' + req.get('host')+'/compare/'+TFI.CONST_CBONDS_FUNDS+'/'+TFI.DATE_COMPARE_FROM.toISOString().substring(0,10)+'">Show chart</a>'
+                +'<div><pre><small>'+JSON.stringify(msg, ' ', 2)+'</small></pre></div>'
             ) 
                                               
         } 
     );
     pad.run()
-    res.json('Loading started.')
+    res.json('Loading started. Wait for email')
 }
 
 getCbond = async (item) => {
@@ -572,8 +441,6 @@ getCbond = async (item) => {
         } else {
             dateFrom = new Date(result[0].date).toISOString().substring(0,10)
         }
-
-// console.log(item, BASE_URL+dateFrom+'/'+dateTo+'/')
 
         return axios({
             url: BASE_URL+dateFrom+'/'+dateTo+'/',
@@ -629,4 +496,122 @@ checkCbond = (item, input) => {
 //         })
 //         res.json( result.data )
 //     })
+// }
+
+// exports.calculateNEW = (req, res, next) => {
+//     let effectiveDate = new Date(req.params.date)
+//     Cbonds
+//         .find( {date: { $lte: effectiveDate } } )
+//         .sort({emission_id: 1, date: -1}) 
+//         .then(function (result) {
+//             let arr = result.map(element => {
+//                 let indicative_price
+//                 try {
+//                     indicative_price = Number(element.indicative_price.replace(',','.').replace(' ',''))
+//                 } catch (e) {
+//                     console.log('Can not create indicative_price', element.emission_id, element.date, element.indicative_price)
+//                     indicative_price = null
+//                 }
+//                 return [
+//                     1*element.emission_id, 
+//                     element.date,  
+//                     indicative_price                  
+//                 ]
+//             })
+
+//             let pivotArr = {}
+//             arr.forEach(ele => {
+//                 pivotArr[el.date] = {}
+//                 pivotArr[el.date][elt.emission_id] = el.indicative_price
+//             })
+
+//             res.status(200).json(pivotArr)
+//         })
+// }
+
+// //calculate daily weighted percentage change
+// exports.calculateORY = (req, res, next) => {
+//     let dictionary = getDictionary()
+//     //console.log(dictionary.length, req.params.date)
+//     let effectiveDate = new Date(req.params.date)
+
+//     //return sorted by emission id (ASC) and date (DESC) 
+//     Cbonds.find( {date: { $lte: effectiveDate } } ).sort({emission_id: 1, date: -1}) 
+//         .then(function (result) {            
+//             let arr = result
+//                 .filter(element => dictionary.indexOf(1*element.emission_id) > -1)
+//                 .map(element => {
+//                 try {
+//                     return {
+//                         emission_id: 1*element.emission_id, 
+//                         date: element.date,
+//                         indicative_price: Number(element.indicative_price.replace(',','.'))
+//                     }
+//                 } catch (e) {
+//                     console.log('error', element.emission_id, e.toString().substring(0,50))
+//                     return {
+//                         emission_id: 1*element.emission_id, 
+//                         date: element.date,
+//                         indicative_price: Number(element.buying_quote.replace(',','.'))    
+//                     }
+//                 }
+//             })
+
+//             let outVal = [] 
+//             funds.forEach(fund => {
+//                 //raw percentage sum
+//                 let sum = bondParams[fund].reduce( (result, element) => result + element[1], 0 )
+               
+//                 //weighted percentage sum
+//                 let percentWeighted = bondParams[fund].map( element => element[1] / sum * 100)
+                
+//                 //return two last values
+//                 let cbondValues = bondParams[fund].map(param => {
+//                     return arr.filter(bond => bond.emission_id === param[0])
+//                             .filter( (el, index) => index <= 1)
+//                             .map(el => el.indicative_price/*{ 
+//                                 return {
+//                                     e: el.emission_id,
+//                                     v: Number(el.indicative_price.replace(',','.')), 
+//                                     d: el.date
+//                                     }
+//                                 }*/)
+//                 })
+                
+//                 //cbondValues = cbondValues.filter(item => item.length > 0)
+//                 cbondValues.forEach((item,index) => {
+//                     if (item.length === 0) {
+//                         item.push(1)
+//                         item.push(1)
+//                     }
+//                 })
+
+//                 cbondValues = cbondValues.map(cbondValue => {
+//                     let change = (cbondValue[0] - cbondValue[1]) / cbondValue[1]
+//                     cbondValue.push(change===null ? 0.0 : change)
+//                     return cbondValue
+//                 })
+                
+//                 //cbondValues.forEach(item => console.log(item, item.length) )
+
+//                 //final weighted % change
+//                 let change = percentWeighted.reduce( (sum, element, i) => sum + (cbondValues[i][2] * element), 0)
+
+//                 outVal.push( {
+//                     fund: fund,
+//                     //show dates
+//                     date: effectiveDate,
+//                     arr: bondParams[fund].map(param => 
+//                             arr.filter((bond, index) => bond.emission_id === param[0])
+//                                .filter( (el, index) => index === 0).length//[0].date
+//                     ),
+//                     sum: sum,
+//                     percentWeighted: percentWeighted,
+//                     cbondValues: cbondValues,
+//                     change: Math.round(change * 10000) / 10000
+//                 } )
+//             })
+//             res.status(200).json(outVal)
+//         })
+//         .catch (next) 
 // }

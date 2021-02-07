@@ -4,7 +4,7 @@ const qs = require('querystring')
 
 const utils = require("./utils.js")
 const Launcher = require("./launcher.js")
-const TFI = require('../config/TFI')
+//const TFI = require('../config/TFI')
 const TFIMetaDataCtrl = require('./controllers/tfi-controller')
 const TFIvalues = require('./models/tfi-values-model')
 
@@ -12,7 +12,7 @@ const TFIvalues = require('./models/tfi-values-model')
 const BASE_URL = 'https://www.bankier.pl/new-charts/get-data'//?date_from=1612003453272&date_to=1612262653272&symbol=MWIG40&intraday=false&type=area'
 const CONST_PREFIX = 'BANKIER-'
 
-const CONST_MIN_INIT_DATE = new Date("2020-01-01")
+const CONST_MIN_INIT_DATE = new Date("2010-01-01")
 
 let currentDate
 

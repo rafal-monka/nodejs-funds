@@ -15,7 +15,7 @@ const deleteRecords = (symbol) => {
 }
 
 exports.callFunction = async (tfi) => {
-    console.log(tfi.symbol, 'analizy-loader.callFunction', tfi)
+    //console.log(tfi.symbol, 'analizy-loader.callFunction', tfi)
 
     let res = await TFIMetaDataCtrl.read(tfi.symbol)
     // let dateFrom = new Date()
@@ -53,7 +53,7 @@ exports.callbackFunction = (item, value)=> {
                 value: row.value
         }})
         
-        console.log('arr.length', arr.length)
+        console.log('Analizy-values-loader. callbackFunction arr.length', arr.length)
         if (arr.length>0) {
             // deleteRecords(item.symbol)
             TFIvalues.insertMany(arr, function (err, docs) {
@@ -64,7 +64,7 @@ exports.callbackFunction = (item, value)=> {
                         errorMsg: err.toString().substring(0,100)
                     })
                 } else {
-                    console.log("Multiple documents inserted to Collection", docs.length);
+                    console.log("Analizy-values-loader. Multiple documents inserted to Collection", docs.length);
                     TFIMetaDataCtrl.update(item.symbol, {
                         initDate: (res.initDate === null) ? arr[0].date : res.initDate,
                         lastDate: arr[arr.length-1].date,

@@ -119,7 +119,7 @@ exports.importFund = (symbol, moneySymbol, yearFrom, yearTo, dFrom, dTo)=> {
         },
         //finalCallBack
         (param) => {         
-            console.log('final', param)                                                         
+            console.log('finalCallBack', param)                                                         
         } 
     );
     pad.run();    

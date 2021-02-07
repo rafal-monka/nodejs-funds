@@ -106,18 +106,18 @@ exports.runTest = ()=> {
         //callFunction,
         (param) => {
             return new Promise((resolve, reject) => {
-                console.log('callFunction', param);
+                //console.log('callFunction', param);
                 resolve({resolve_value: param});
             })
         },
         //callbackFunction,
         (param) => {
-            console.log('callbackFunction', param);
+            //console.log('callbackFunction', param);
             return {callback_value: JSON.stringify(param)}
         },
         //finalCallBack
         (param) => {
-            console.log('finalCallBack', param);
+            console.log('Launcher finalCallBack');
         } 
     );
     pad.run();
