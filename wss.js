@@ -54,12 +54,12 @@ console.log('on-message', obj)
             switch (msg.action) {
 
                 case 'LOADVALUE-INIT':
-                    console.log('on-message.LOADVALUE-STARTED', symbols)
+                    console.log('on-message.LOADVALUE-STARTED')
                     TFIMetaDataCtrl.loadValues(wssClientID, symbols) 
                     break
 
                 case 'CALCLR-INIT':
-                    console.log('on-message.CALCLR-INIT', symbols)
+                    console.log('on-message.CALCLR-INIT')
                     AnalyseTrendsCtrl.calcLRFunds(wssClientID, symbols)                     
                     break
 

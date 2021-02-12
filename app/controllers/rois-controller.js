@@ -73,7 +73,7 @@ const saveROI = (symbol, date, value, rois) => {
                 && rois[5].v === docs[0].roi3 
                 && rois[6].v === docs[0].roi2 
                 && rois[7].v === docs[0].roi1) {
-                console.log('OK ROI values are the same.', symbol, date/*, ' \nROIS='+JSON.stringify(rois)+' \nDOCS='+docs[0]*/)
+                //console.log('OK ROI values are the same.', symbol, date/*, ' \nROIS='+JSON.stringify(rois)+' \nDOCS='+docs[0]*/)
             } else {
                 console.log('ERROR different ROI values. Fund '+symbol+' for date '+date.toISOString().substr(0,10)+' VALUE='+value+' <> DOCS.VALUE='+docs[0].value+' \nROIS='+JSON.stringify(rois)+' \nDOCS='+docs[0])
             }
@@ -90,7 +90,7 @@ exports.delete = (req, res) => {
 }
 
 exports.calcFundROI = (symbol, endOnPosition) => {
-    console.log('calcFundROI', symbol)
+    //console.log('calcFundROI', symbol)
     const MONTH = 21
     let periods = [24, 18, 12, 9, 6, 3, 2, 1]
 
@@ -105,7 +105,7 @@ exports.calcFundROI = (symbol, endOnPosition) => {
                 let last = endOnPosition === 1 ? funds.length-1 : 0
 
                 while (i >= last) {
-console.log(i)
+//console.log(i)
                     let rois = []
                     periods.forEach(period => {
                         let delta = period * MONTH

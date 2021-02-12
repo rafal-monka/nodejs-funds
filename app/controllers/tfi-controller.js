@@ -1,6 +1,7 @@
 const Launcher = require("./../launcher.js")
 const TFI = require('./../../config/TFI.js')
 const TFIValues = require('./../models/tfi-values-model')
+const Funds = require('./../models/funds-model')
 const TFIMetaData = require('./../models/tfi-metadata-model')
 const TFILook = require('./../models/tfi-look-model')
 const moneyValueLoader = require("./../money-values-loader.js")
@@ -9,8 +10,54 @@ const analizyLoader = require("../analizy-values-loader.js")
 const wss = require('./../../wss')
 const { json } = require("express")
 
+const CONST_COPY_MIN_DATE = new Date("2020-01-01")
+
 exports.read = (symbol) => {
     return TFIMetaData.findOne({symbol: symbol})    
+}
+
+exports.copyValues = (req, res, next) => {
+    console.log('from '+req.params.symbolfrom+' to '+req.params.symbolto)
+    Funds
+        .find({symbol: req.params.symbolto})
+        .sort({date: 1})
+        .then(result=>{
+            let minDate = result.reduce((min, p) => p.date < min ? p.date : min, result[0].date)    
+            console.log('minDate',minDate)
+
+            TFIValues
+                .find({
+                    symbol: req.params.symbolfrom, 
+                    date: {
+                        $lt: new Date(minDate), 
+                        $gte: CONST_COPY_MIN_DATE
+                    }
+                })
+                .sort({date: -1})
+                .then(result=>{
+                    let arr = result.map(item=>{
+                        return {
+                            symbol: req.params.symbolto,
+                            date: item.date,
+                            value: item.value
+                        }
+                    })
+                    Funds.insertMany(arr, function (err, docs) {
+                        if (err){ 
+                            console.error("tfi-controller.copyValues", err)
+                        } else {
+                            console.log("tfi-controller.copyValues. Multiple documents inserted to Funds", docs.length);                            
+                        }
+                    })
+
+                    res.status(200).json({
+                        period: 'Copying... from '+req.params.symbolfrom+' to '+req.params.symbolto,
+                        minDate: minDate,
+                        dateLast: result[0],
+                        dateFirst: result[result.length-1]
+                    }) 
+                })
+        })         
 }
 
 exports.create = async (source, symbol, name, initDate, lastDate, frameDateFrom, frameDateTo) => {
@@ -29,9 +76,10 @@ exports.create = async (source, symbol, name, initDate, lastDate, frameDateFrom,
 }
 
 exports.update = async (symbol, obj) => {
-// console.log('tfi-controller.update')
+    //console.log(symbol, 'tfi-controller.update', obj.status)
     obj.updated_at = new Date()
-    let result = await TFIMetaData.findOneAndUpdate({symbol: symbol}, obj, ()=> {})
+    let result = await TFIMetaData.findOneAndUpdate({symbol: symbol}, obj, {new: true}, () => {})
+    //console.log(symbol, 'tfi-controller.update.call notify', result.status)
     this.notifyClient(999999, 'METADATA-UPDATE', symbol, result)
 }
 
@@ -130,7 +178,7 @@ exports.loadValues = (wssClientID, symbols) => {
 }
 
 exports.notifyClient = (wssClientID, event, symbol, data) => {
-    //console.log('notifyClient', event, symbol)
+    //console.log(new Date(), 'notifyClient', event, symbol, data.status)
     let response = { 
         event: event,
         symbol: symbol,
@@ -147,7 +195,7 @@ run = (wssClientID, currentDate, symbols) => {
         TFI.getList(symbols),//.slice(0,1), 
         //callFunction,
         (item)=>{ 
-            // console.log('item:',item)
+            //console.log(new Date(), 'call item:', item.symbol)
             switch (item.source.toUpperCase()) {
                 case 'MONEY': return moneyValueLoader.callFunction(item); break;
                 case 'BANKIER': return bankierLoader.callFunction(item); break;
@@ -157,7 +205,7 @@ run = (wssClientID, currentDate, symbols) => {
         },
         //callbackFunction,
         (item, value)=>{ 
-            //console.log('item:',item)
+            //console.log(new Date(), 'callback item:', item.symbol)
             switch (item.source.toUpperCase()) {
                 case 'MONEY': return moneyValueLoader.callbackFunction(item, value); break;
                 case 'BANKIER': return bankierLoader.callbackFunction(item, value); break;

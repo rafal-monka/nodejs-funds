@@ -6,4 +6,7 @@ router.get('/', FundsController.getAll)
 
 router.get('/data', FundsController.getData)
 
+router.get('/delete/:symbol', FundsController.deleteData)
+
+
 module.exports = router

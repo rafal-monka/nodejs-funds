@@ -9,8 +9,11 @@ callFunctionLR = async (tfi) => {
         status: 'CALC-STARTED'
     }) 
     return new Promise(function(resolve, reject) {
-        try {            
-            AnalyseTrendsCtrl.calcLR(999999, tfi.symbol, resolve, reject)
+        try {  
+            setTimeout(          
+                () => AnalyseTrendsCtrl.calcLR(999999, tfi.symbol, resolve, reject),
+                100
+            )
         } catch (e) {
             console.log(tfi.symbol, 'PROMISE EXCEPTION', e)
             reject('Promise is rejested'+e.toString())

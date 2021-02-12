@@ -2,13 +2,19 @@ const Funds = require('./../models/funds-model')
 const Investments = require('./../models/investments-model')
 const Dict = require('./../models/dicts-model')
 
-const CONST_DATE_START = "2020-06-01"
+const CONST_DATE_START = "2020-03-01"
+const CONST_DATE_MIN_TS = "2020-07-01"
 const CONST_TAX = 0.81
 const CONST_ONE_DAY = 24*60*60*1000
 const CONST_ONE_YEAR = 365 * CONST_ONE_DAY
 
 let monthlyArrOBL = []
 let monthlyArrAKC = []
+
+exports.deleteData = (req, res, next) => {
+    Funds.deleteMany({symbol: req.params.symbol}, function(err, result) {} )
+    res.json('Deleted '+req.params.symbol)
+}
 
 exports.getAll = (req, res, next) => {  
     Funds.find({date: {$gt: new Date(CONST_DATE_START)}}).sort({symbol: 1, date: 1}) 
@@ -33,7 +39,7 @@ exports.getData = (req, res, next) => {
             let dict = result[0].map(item => {
                 return {
                     symbol: item.symbol,
-                    moneyplsymbol: item.moneyplsymbol,
+                    moneyplsymbol: item.moneyplsymbol, //###???unused
                     code: item.code,
                     aolurl: item.aolurl
                 }
@@ -75,6 +81,32 @@ exports.getData = (req, res, next) => {
               chartDataAKC.push(processInvestment(funds, inv, monthlyArrAKC))
             })
 
+            //console.log('funds', funds)
+            //trailing stop
+            let groupedFunds = []
+            funds.forEach(fund => {
+                if (groupedFunds[fund.symbol] === undefined) groupedFunds[fund.symbol] = []
+                groupedFunds[fund.symbol].push({
+                    date: fund.date.getTime(), 
+                    value: fund.value
+                })
+            })
+// console.log('groupedFunds', groupedFunds)            
+            let arr = Object.getOwnPropertyNames(groupedFunds)
+                .map(item => {
+                    if (item.indexOf('length')!==0) return {
+                        symbol: item,
+                        data: groupedFunds[item]
+                    }
+                })
+                .filter(item => item)
+            //console.log('arr', arr)
+            let trailingStopOBL = []
+            //arr.forEach(fundSeries => console.log('fundSeries', fundSeries))
+            arr
+            // .filter(TEMP=>TEMP.symbol.indexOf('OBL') > -1)
+            .forEach(fundSeries => trailingStopOBL.push(fTS(fundSeries)))
+            
             res.status(200).json( {
                 dict: dict,
                 // invs: invs,
@@ -82,7 +114,8 @@ exports.getData = (req, res, next) => {
                 chartDataOBL: chartDataOBL,
                 monthlyArrOBL: monthlyArrOBL,
                 chartDataAKC: chartDataAKC,
-                monthlyArrAKC: monthlyArrAKC
+                monthlyArrAKC: monthlyArrAKC,
+                trailingStop: trailingStopOBL
             })
         })
         .catch (next) 
@@ -179,4 +212,38 @@ fLR = (series) => {
     }
     return trendSeries
 
-  }
+}
+
+function getMin1Month(series, dateTo) {
+    const DAYS_BACK = 30
+    let dateFrom = new Date(dateTo-DAYS_BACK*24*60*60*1000).getTime()
+    //console.log('min.dateTo => dateFrom', dateTo, dateFrom, new Date(dateTo), new Date(dateFrom))
+    let data = series.filter(item => item.date >= dateFrom && item.date <= dateTo)
+    return data.reduce((min, p) => p.value < min ? p.value : min, data[0].value)
+}
+
+function getMax3Month(series, dateTo) {
+    const DAYS_BACK = 90
+    let dateFrom = new Date(dateTo-DAYS_BACK*24*60*60*1000).getTime()
+    let data = series.filter(item => item.date >= dateFrom && item.date <= dateTo)
+    return data.reduce((max, p) => p.value > max ? p.value : max, data[0].value)
+}
+
+fTS = (series) => {
+    let dateStart = new Date(CONST_DATE_MIN_TS).getTime()
+    let color = series.symbol.indexOf('OBL')>-1 ? '0,'+(Math.random()*255)+',255':'255,'+(Math.random()*255)+',0'
+    let trendSeries = {
+        name: series.symbol,
+        marker: {
+          enabled: false
+        },
+        color: 'rgba('+color+',1.0)',
+        //color: , //series.color
+        data: series.data.filter(item => item.date >= dateStart).map(item => [
+            item.date,
+            Math.round( ((getMin1Month(series.data, item.date)/getMax3Month(series.data, item.date)*100)-100) * 100) /100
+        ])
+    }
+    return trendSeries
+
+}

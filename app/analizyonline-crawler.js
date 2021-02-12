@@ -4,6 +4,8 @@ var Launcher = require("./launcher.js");
 const storage = require('./fund-storage')
 const email = require("./email")
 const TFI = require('../config/TFI')
+const Funds = require('./models/funds-model')
+const utils = require("./utils.js")
 
 exports.perform = async (req) => {
     console.log('analizyonline-crawler perform')
@@ -31,6 +33,7 @@ exports.perform = async (req) => {
                 //temp
                 arr.push({
                     title: el.output.title, 
+                    symbol: el.item.symbol,
                     date: new Date(el.output.date).toISOString().substring(0,10), 
                     value: el.output.value
                 })
@@ -38,15 +41,49 @@ exports.perform = async (req) => {
                 storage.store(el.item.symbol, new Date(el.output.date), el.output.value)                
             })
 
-            //email
-            //return
-            email.sendEmail(' Funds (AnalizyOnline) '+new Date(), 
-                '<a href="'+req.protocol + '://' + req.get('host')+'">Show panel</a>'
-                +'<br><br>'
-                +'<a href="'+req.protocol + '://' + req.get('host')+'/compare/'+TFI.CONST_CBONDS_FUNDS+'/'+TFI.DATE_COMPARE_FROM.toISOString().substring(0,10)+'">Show comparition chart</a>'
-                +'<br><br><a href="https://money.cnn.com/data/fear-and-greed/">Fear and greed</a>'
-                +'<div><pre><small>'+JSON.stringify(arr, ' ', 2)+'</small></pre></div>'
-            )                                   
+            //% change 
+            Funds
+                .find({})
+                .sort({date: -1, symbol: 1}) 
+                .limit(arr.length*2)
+                .then(function (result) {
+                    //console.log(result.length)
+                    let changes = result
+                        .filter((item, index) => index < arr.length)
+                        .map((item, index) => {
+                            return {
+                                symbol: item.symbol,
+                                date: item.date,
+                                change: Math.round( ((item.value - result[arr.length+index].value) / result[arr.length+index].value * 100) * 100)/100,
+                            }
+                        })
+                    //console.log(changes)
+                    arr = arr.map((a,i)=> {
+                        let change = changes.filter(ch => ch.symbol === a.symbol)
+                        let position = {
+                            title: a.title,
+                            date: a.date,
+                            value: a.value,
+                            change: change[0].change,
+                            msg: ''
+                        }
+                        if (new Date(change[0].date).getTime() !== new Date(a.date).getTime()) {
+                            position.msg = 'Check dates ['+new Date(change[0].date).toISOString().substring(0,10)+'] ['+a.date+']'
+                        }
+                        return position 
+                        
+                    })
+                    //console.log(arr)
+                    //email
+                    if (true) email.sendEmail(' Funds (AnalizyOnline) '+new Date(), 
+                    '<a href="'+req.protocol + '://' + req.get('host')+'">Show panel</a>'
+                    +'<br><br>'
+                    +'<a href="'+req.protocol + '://' + req.get('host')+'/compare/'+TFI.CONST_CBONDS_FUNDS+'/'+TFI.DATE_COMPARE_FROM.toISOString().substring(0,10)+'">Show comparition chart</a>'
+                    +'<br><br><a href="https://money.cnn.com/data/fear-and-greed/">Fear and greed</a>'
+                    //+'<div><pre><small>'+JSON.stringify(arr, ' ', 2)+'</small></pre></div>'
+                    +'<div><pre>'+utils.json2Table(arr, [0,0,1,1,0])+'</pre></div>'
+                ) 
+                })                                              
         } 
     );
     pad.run()

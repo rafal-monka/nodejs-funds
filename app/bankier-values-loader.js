@@ -10,13 +10,10 @@ const TFIvalues = require('./models/tfi-values-model')
 
 // 'https://www.bankier.pl/new-charts/get-data?date_from=946684800000&date_to=1612368578438&symbol=MWIG40&intraday=false&type=area'
 const BASE_URL = 'https://www.bankier.pl/new-charts/get-data'//?date_from=1612003453272&date_to=1612262653272&symbol=MWIG40&intraday=false&type=area'
-const CONST_PREFIX = 'BANKIER-'
 
 const CONST_MIN_INIT_DATE = new Date("2010-01-01")
 
 let currentDate
-
-
 
 const deleteRecords = (symbol) => {
     console.log('delete', symbol)

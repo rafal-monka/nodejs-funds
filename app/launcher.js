@@ -15,7 +15,7 @@ module.exports = class Launcher  {
     }
 
     run () {
-        console.log('run', Math.min(this.max_parralel, this.items.length));
+        //console.log('run', Math.min(this.max_parralel, this.items.length));
         if (this.items) {
             this.status = 'RUNNING';
             for (var i=0; i < Math.min(this.max_parralel, this.items.length); i++ ) {

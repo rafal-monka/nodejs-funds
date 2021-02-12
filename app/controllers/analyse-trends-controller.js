@@ -74,7 +74,6 @@ exports.calcLR = async (wssClientID, symbol, resolve, reject) => {
                             dval
                         ]
                     })
-                    console.log('[4]')
                     let diff_lr = fatLR(diffArr)
                     // diff_lr = { a: 2, b: 2 }
                     let lastDiff = Math.round( (ordered[ordered.length-1][1] - (lr.a * ordered[ordered.length-1][0] + lr.b)) * 100 ) / 100
