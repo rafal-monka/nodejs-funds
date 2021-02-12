@@ -26,7 +26,7 @@ console.log('getLastDayOfMonth', direction, date, ' =>', ret)    // date = new D
 
 exports.getDaysArray = function(s,e) {for(var a=[],d=new Date(s);d<=e;d.setDate(d.getDate()+1)){ a.push(new Date(d));}return a;};
 
-exports.json2Table = function(json, alignArr) {
+exports.json2Table = function(json, alignArr, colorCol) {
     let cols = Object.keys(json[0]);
   
   
@@ -42,8 +42,8 @@ exports.json2Table = function(json, alignArr) {
     //finally join all the rows together
     let rows = json
       .map(row => {
-        let tds = cols.map(col => `<td>${row[col]}</td>`).join("");
-        return `<tr>${tds}</tr>`;
+        let tds = cols.map((col, ci) => `<td style="text-align: ${alignArr[ci]===0?'left':'right'}">${row[col]}</td>`).join("");
+        return `<tr style="color: ${row[colorCol]<0?'red':row[colorCol]===0?'black':'green'}">${tds}</tr>`;
       })
       .join("");
   

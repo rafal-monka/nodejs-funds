@@ -81,7 +81,7 @@ exports.perform = async (req) => {
                     +'<a href="'+req.protocol + '://' + req.get('host')+'/compare/'+TFI.CONST_CBONDS_FUNDS+'/'+TFI.DATE_COMPARE_FROM.toISOString().substring(0,10)+'">Show comparition chart</a>'
                     +'<br><br><a href="https://money.cnn.com/data/fear-and-greed/">Fear and greed</a>'
                     //+'<div><pre><small>'+JSON.stringify(arr, ' ', 2)+'</small></pre></div>'
-                    +'<div><pre>'+utils.json2Table(arr, [0,0,1,1,0])+'</pre></div>'
+                    +'<div><pre>'+utils.json2Table(arr, [0,0,1,1,0], 'change')+'</pre></div>'
                 ) 
                 })                                              
         } 
