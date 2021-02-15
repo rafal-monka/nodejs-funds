@@ -8,7 +8,7 @@ const Funds = require('./models/funds-model')
 const utils = require("./utils.js")
 
 exports.perform = async (req) => {
-    console.log('analizyonline-crawler perform')
+    console.log(new Date(), 'analizyonline-crawler perform')
     let dictionary = await storage.getDictionary()    
     // return 
     let pad = new Launcher(
@@ -41,25 +41,43 @@ exports.perform = async (req) => {
                 storage.store(el.item.symbol, new Date(el.output.date), el.output.value)                
             })
 
+            //console.log(arr.length)
             //% change 
             Funds
                 .find({})
                 .sort({date: -1, symbol: 1}) 
-                .limit(arr.length*2)
+                .limit(arr.length*3) //last bulk 
                 .then(function (result) {
                     //console.log(result.length)
-                    let changes = result
-                        .filter((item, index) => index < arr.length)
+                    let tmpFunds = []
+                    arr.forEach(res => {
+                        tmpFunds[res.symbol] = 0                        
+                    }) 
+
+                    let result2 = []
+                    result.forEach(res => {
+                        tmpFunds[res.symbol] += 1
+                        if (tmpFunds[res.symbol] <= 2) {
+                            result2.push(res)
+                        }
+                    }) 
+                    result2 = result2.sort((a,b) => a.symbol === b.symbol ? new Date(a.date) < new Date(b.date) ? 1 : -1 : a.symbol > b.symbol ? 1 : -1)
+
+                    //console.log('result2', result2)
+                    let changes = result2
+                        .filter((item, index) => index % 2 ===0)
                         .map((item, index) => {
                             return {
                                 symbol: item.symbol,
                                 date: item.date,
-                                change: Math.round( ((item.value - result[arr.length+index].value) / result[arr.length+index].value * 100) * 100)/100,
+                                change: Math.round( ((item.value - result2[index*2+1].value) / result2[index*2+1].value * 100) * 100)/100,
                             }
                         })
-                    //console.log(changes)
+                    
+
                     arr = arr.map((a,i)=> {
                         let change = changes.filter(ch => ch.symbol === a.symbol)
+                        // console.log(a.symbol, 'change.length', change.length)
                         let position = {
                             title: a.title,
                             date: a.date,
