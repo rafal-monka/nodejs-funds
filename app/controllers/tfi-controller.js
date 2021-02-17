@@ -78,7 +78,7 @@ exports.create = async (source, symbol, name, initDate, lastDate, frameDateFrom,
 exports.update = async (symbol, obj) => {
     //console.log(symbol, 'tfi-controller.update', obj.status)
     obj.updated_at = new Date()
-    let result = await TFIMetaData.findOneAndUpdate({symbol: symbol}, obj, {new: true}, () => {})
+    let result = await TFIMetaData.findOneAndUpdate({symbol: symbol}, obj, {new: true} /*Note: {new: true} must be to return updated value!!!*/, () => {})
     //console.log(symbol, 'tfi-controller.update.call notify', result.status)
     this.notifyClient(999999, 'METADATA-UPDATE', symbol, result)
 }

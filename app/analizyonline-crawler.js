@@ -41,67 +41,70 @@ exports.perform = async (req) => {
                 storage.store(el.item.symbol, new Date(el.output.date), el.output.value)                
             })
 
-            //console.log(arr.length)
-            //% change 
-            Funds
-                .find({})
-                .sort({date: -1, symbol: 1}) 
-                .limit(arr.length*3) //last bulk 
-                .then(function (result) {
-                    //console.log(result.length)
-                    let tmpFunds = []
-                    arr.forEach(res => {
-                        tmpFunds[res.symbol] = 0                        
-                    }) 
+            //wait a while for storage to complete
+            setTimeout( () => {
+                //% change 
+                Funds
+                    .find({})
+                    .sort({date: -1, symbol: 1}) 
+                    .limit(arr.length*3) //last bulk 
+                    .then(function (result) {
+                        //console.log(result.length)
+                        let tmpFunds = []
+                        arr.forEach(res => {
+                            tmpFunds[res.symbol] = 0                        
+                        }) 
 
-                    let result2 = []
-                    result.forEach(res => {
-                        tmpFunds[res.symbol] += 1
-                        if (tmpFunds[res.symbol] <= 2) {
-                            result2.push(res)
-                        }
-                    }) 
-                    result2 = result2.sort((a,b) => a.symbol === b.symbol ? new Date(a.date) < new Date(b.date) ? 1 : -1 : a.symbol > b.symbol ? 1 : -1)
-
-                    //console.log('result2', result2)
-                    let changes = result2
-                        .filter((item, index) => index % 2 ===0)
-                        .map((item, index) => {
-                            return {
-                                symbol: item.symbol,
-                                date: item.date,
-                                change: Math.round( ((item.value - result2[index*2+1].value) / result2[index*2+1].value * 100) * 100)/100,
+                        let result2 = []
+                        result.forEach(res => {
+                            tmpFunds[res.symbol] += 1
+                            if (tmpFunds[res.symbol] <= 2) {
+                                result2.push(res)
                             }
-                        })
-                    
+                        }) 
+                        result2 = result2.sort((a,b) => a.symbol === b.symbol ? new Date(a.date) < new Date(b.date) ? 1 : -1 : a.symbol > b.symbol ? 1 : -1)
 
-                    arr = arr.map((a,i)=> {
-                        let change = changes.filter(ch => ch.symbol === a.symbol)
-                        // console.log(a.symbol, 'change.length', change.length)
-                        let position = {
-                            title: a.title,
-                            date: a.date,
-                            value: a.value,
-                            change: change[0].change,
-                            msg: ''
-                        }
-                        if (new Date(change[0].date).getTime() !== new Date(a.date).getTime()) {
-                            position.msg = 'Check dates ['+new Date(change[0].date).toISOString().substring(0,10)+'] ['+a.date+']'
-                        }
-                        return position 
+                        //console.log('result2', result2)
+                        let changes = result2
+                            .filter((item, index) => index % 2 ===0)
+                            .map((item, index) => {
+                                return {
+                                    symbol: item.symbol,
+                                    date: item.date,
+                                    change: Math.round( ((item.value - result2[index*2+1].value) / result2[index*2+1].value * 100) * 100)/100,
+                                }
+                            })
                         
-                    })
-                    //console.log(arr)
-                    //email
-                    if (true) email.sendEmail(' Funds (AnalizyOnline) '+new Date(), 
-                    '<a href="'+req.protocol + '://' + req.get('host')+'">Show panel</a>'
-                    +'<br><br>'
-                    +'<a href="'+req.protocol + '://' + req.get('host')+'/compare/'+TFI.CONST_CBONDS_FUNDS+'/'+TFI.DATE_COMPARE_FROM.toISOString().substring(0,10)+'">Show comparition chart</a>'
-                    +'<br><br><a href="https://money.cnn.com/data/fear-and-greed/">Fear and greed</a>'
-                    //+'<div><pre><small>'+JSON.stringify(arr, ' ', 2)+'</small></pre></div>'
-                    +'<div><pre>'+utils.json2Table(arr, [0,0,1,1,0], 'change')+'</pre></div>'
-                ) 
-                })                                              
+
+                        arr = arr.map((a,i)=> {
+                            let change = changes.filter(ch => ch.symbol === a.symbol)
+                            // console.log(a.symbol, 'change.length', change.length)
+                            let position = {
+                                title: a.title,
+                                date: a.date,
+                                value: a.value,
+                                change: change[0].change,
+                                msg: ''
+                            }
+                            if (new Date(change[0].date).getTime() !== new Date(a.date).getTime()) {
+                                position.msg = 'Check dates ['+new Date(change[0].date).toISOString().substring(0,10)+'] ['+a.date+']'
+                            }
+                            return position 
+                            
+                        })
+                        //console.log(arr)
+                        //email
+                        if (true) email.sendEmail(' Funds (AnalizyOnline) '+new Date(), 
+                        '<a href="'+req.protocol + '://' + req.get('host')+'">Show panel</a>'
+                        +'<br><br>'
+                        +'<a href="'+req.protocol + '://' + req.get('host')+'/compare/'+TFI.CONST_CBONDS_FUNDS+'/'+TFI.DATE_COMPARE_FROM.toISOString().substring(0,10)+'">Show comparition chart</a>'
+                        +'<br><br><a href="https://money.cnn.com/data/fear-and-greed/">Fear and greed</a>'
+                        //+'<div><pre><small>'+JSON.stringify(arr, ' ', 2)+'</small></pre></div>'
+                        +'<div><pre>'+utils.json2Table(arr, [0,0,1,1,0], 'change')+'</pre></div>'
+                    ) 
+                }) 
+
+            }, 7*1000) //7 seconds                                
         } 
     );
     pad.run()
