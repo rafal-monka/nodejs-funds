@@ -15,6 +15,11 @@ exports.getFirstDayOfMonth = (date, direction) => {
     return ret
 }
 
+exports.getLastDayOfPreviousMonth = (date) => {
+    date = new Date(date)
+    return new Date(new Date(date.getFullYear(), date.getMonth(), 1).getTime()-24*60*60*1000)
+  }
+
 exports.getLastDayOfMonth = (date, direction) => {
 console.log('getLastDayOfMonth, date=', date)    
     date = new Date(date.toISOString().substr(0,10))

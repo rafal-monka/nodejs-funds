@@ -51,7 +51,7 @@ const deleteRecords = (symbol) => {
 // }
 
 exports.callFunction = async (tfi) => {
-    console.log(tfi.symbol, 'bankier-loader.callFunction', tfi)
+    //console.log(tfi.symbol, 'bankier-loader.callFunction', tfi)
 
     let res = await TFIMetaDataCtrl.read(tfi.symbol)
     let dateFrom = new Date()
@@ -62,11 +62,9 @@ exports.callFunction = async (tfi) => {
         dateFrom = CONST_MIN_INIT_DATE
         TFIMetaDataCtrl.create(tfi.source, tfi.symbol, tfi.name, dateFrom, dateTo, null, null)
     } else {
-        //console.log('UPDATE', res.lastDate, res.lastDate.getTime())
-        //@@@###
-        dateFrom = new Date(res.lastDate.getTime()+1000) //add one second
+        let lastTFIValue = await TFIvalues.find({symbol:tfi.symbol}).sort( {date: -1}).limit(1)
+        dateFrom = new Date(lastTFIValue[0].date.getTime()+1000) //add one second  
         await TFIMetaDataCtrl.update(tfi.symbol, {
-            lastDate: dateTo,
             status: 'RUNNING',
             errorMsg: ''
         })
@@ -99,25 +97,36 @@ exports.callbackFunction = (item, value)=> {
             symbol: item.symbol, 
             date: new Date(row[0]),
             value: row[1]
-    }})
+    }}).sort((a,b) => new Date(a.date) > new Date(b.date) ? 1 : -1)
+
+    arr.forEach((a, inx) => console.log(item.symbol, 'arr.inx', inx, 'date', a.date))
 
     //@@@
     //deleteRecords(item.symbol)
-    TFIvalues.insertMany(arr, function (err, docs) {
-        if (err){ 
-            console.error(err);
-            TFIMetaDataCtrl.update(item.symbol, {
-                status: 'ERROR',
-                errorMsg: err.toString().substring(0,100)
-            })
-        } else {
-            console.log("Multiple documents inserted to Collection", docs.length);
-            TFIMetaDataCtrl.update(item.symbol, {
-                status: 'OK',
-                errorMsg: ''
-            })
-        }
-    });
-
+    if (arr.length > 0) {
+        TFIvalues.insertMany(arr, function (err, docs) {
+            if (err){ 
+                console.error(err);
+                TFIMetaDataCtrl.update(item.symbol, {
+                    status: 'ERROR',
+                    errorMsg: err.toString().substring(0,100)
+                })
+            } else {
+                console.log("Multiple documents inserted to Collection", docs.length);
+                //docs.forEach((doc, inx) => console.log('docs.inx', inx, 'date', doc.date))
+                
+                TFIMetaDataCtrl.update(item.symbol, {
+                    lastDate: arr[arr.length-1].date,
+                    status: 'OK',
+                    errorMsg: ''
+                })
+            }
+        })
+    } else {
+        TFIMetaDataCtrl.update(item.symbol, {
+            status: 'OK',
+            errorMsg: 'Now new data'
+        })
+    }
     return arr
 }

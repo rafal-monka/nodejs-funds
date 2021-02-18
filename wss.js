@@ -47,19 +47,19 @@ console.log('closing', wssClientID)
         })
             
         ws.on('message', function message(obj) {
-console.log('on-message', obj)
+// console.log('on-message', obj)
             let msg = JSON.parse(obj)
             let response
             let symbols = msg.value
             switch (msg.action) {
 
                 case 'LOADVALUE-INIT':
-                    console.log('on-message.LOADVALUE-STARTED')
+                    // console.log('on-message.LOADVALUE-STARTED')
                     TFIMetaDataCtrl.loadValues(wssClientID, symbols) 
                     break
 
                 case 'CALCLR-INIT':
-                    console.log('on-message.CALCLR-INIT')
+                    // console.log('on-message.CALCLR-INIT')
                     AnalyseTrendsCtrl.calcLRFunds(wssClientID, symbols)                     
                     break
 

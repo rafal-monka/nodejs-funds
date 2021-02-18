@@ -1,6 +1,7 @@
 const Funds = require('./../models/funds-model')
 const Investments = require('./../models/investments-model')
 const Dict = require('./../models/dicts-model')
+const utils = require("./../utils.js")
 
 const CONST_DATE_START = "2020-03-01"
 const CONST_DATE_MIN_TS = "2020-07-01"
@@ -107,10 +108,100 @@ exports.getData = (req, res, next) => {
             // .filter(TEMP=>TEMP.symbol.indexOf('OBL') > -1)
             .forEach(fundSeries => trailingStopOBL.push(fTS(fundSeries)))
             
+            //Linia obrony
+            //last day od previous month
+            let previousMonthLastValue = arr.map(f => {
+                return { 
+                    symbol: f.symbol, 
+                    data: f.data
+                        .filter(val => new Date(val.date).getTime() <= utils.getLastDayOfPreviousMonth(f.data[f.data.length-1].date).getTime())
+                        .map(d => {
+                            return {
+                                c: 'last',
+                                date: new Date(d.date),
+                                value: d.value
+                            }
+                        })
+                        .sort((a,b) => new Date(a.date) < new Date(b.date) ? 1 : -1)
+                        .filter((val, i) => i === 0)
+                }
+            }) 
+            //current (this) month values
+            let currentValues = arr                
+                .map(f => {
+                    return { 
+                        symbol: f.symbol, 
+                        data: f.data
+                            .filter(val => new Date(val.date).getTime() > utils.getLastDayOfPreviousMonth(f.data[f.data.length-1].date).getTime())
+                            //.sort((a,b) => new Date(a.date) > new Date(b.date) ? 1 : -1)
+                            .map(d => {
+                                //.filter((d,i)=> i === f.data.length-1).map(d => {
+                                return {
+                                    c: 'current',
+                                    date: new Date(d.date),
+                                    value: d.value
+                                }
+                            })
+                    }
+                }) 
+
+            let fundsLOValues = currentValues.map(el => {
+                let prevMonth = previousMonthLastValue.filter(pf => pf.symbol === el.symbol)
+                el.data.unshift(prevMonth[0].data[0])
+                let type = invs.filter(inv => inv.symbol === el.symbol)[0].type 
+                let threshold = (type === 'AKC' ? -7.0 : -2.0) //###CONST
+                let lo = Math.round( el.data[0].value * (100+threshold)/100 * 100)/100
+
+                let data = el.data.map(val => {
+                    let change = Math.round( ((val.value - el.data[0].value) / el.data[0].value)*100 * 100) / 100
+                    return [
+                        new Date(val.date).getTime(),
+                        1*change,
+                        val.value
+                    ]
+                })
+                //let color = type === 'OBL' ? '0,'+(Math.random()*255)+',255':'255,'+(Math.random()*255)+',0'
+                return {
+                    name: el.symbol,
+                    marker: {
+                        enabled: true
+                    },
+                    //color: 'rgba('+color+',1.0)',
+                    data: data,
+                    fundType: type,
+                    lo: lo
+                }
+            })
+
+            let fundsLOValuesAKC = fundsLOValues.filter(el => el.fundType === 'AKC')
+            let fundsLOValuesOBL = fundsLOValues.filter(el => el.fundType === 'OBL')
+            // currentValues.reduce((x,f) => {
+            //     let prevMonth = previousMonthLastValue.filter(pf => pf.symbol === f.symbol)
+            //     f.data.unshift(prevMonth[0].data[0])
+            //     let type = invs.filter(inv => inv.symbol === f.symbol)[0].type 
+            //     let threshold = (type === 'AKC' ? -7.0 : -2.0) //###CONST
+            //     f.data.forEach((el, inx) => {
+            //         let change = Math.round( ((el.value - f.data[0].value) / f.data[0].value)*100 * 100) / 100
+            //         let level = Math.round( (change / threshold) * 100 ) 
+            //         let warningLevel = ( level < 0 ? Math.max(-255, level*10) : Math.min(255,level*10) )
+            //         fundsLOValues.push ({
+            //             symbol: f.symbol,
+            //             type: type,
+            //             date: new Date(el.date).toISOString().substring(0,10),
+            //             value: el.value,
+            //             lo: (inx === 0) ? Math.round( el.value * (100+threshold)/100 * 100)/100 : null,
+            //             change: change,
+            //             warningInfo: type+'/' + (change <= threshold) ? 'NO' : 'WARNING',
+            //             warningColor: ('rgb('+(level < 0 ? '0,'+(-1)*(warningLevel)+',0' : (warningLevel)+',0,0') + ')')
+            //         })
+            //     })                                    
+            // }, fundsLOValues)
+
             res.status(200).json( {
                 dict: dict,
                 // invs: invs,
-                // funds: funds,
+                fundsLOValuesAKC: fundsLOValuesAKC,
+                fundsLOValuesOBL: fundsLOValuesOBL,
                 chartDataOBL: chartDataOBL,
                 monthlyArrOBL: monthlyArrOBL,
                 chartDataAKC: chartDataAKC,
@@ -118,7 +209,7 @@ exports.getData = (req, res, next) => {
                 trailingStop: trailingStopOBL
             })
         })
-        .catch (next) 
+        //.catch (next) 
 }
 
 setTable = (investment, obs, monthlyArr) => {
