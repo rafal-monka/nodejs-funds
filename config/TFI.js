@@ -1,4 +1,4 @@
-exports.myBondTFISymbols = "ARK11,ARK23,ING04,PIO54"
+exports.myBondTFISymbols = "ARK11,ARK23,ING04"
 exports.DATE_COMPARE_FROM = new Date('2021-01-01') //min date to compare
 exports.CONST_CBONDS_FUNDS = this.myBondTFISymbols+",*" // *=cbonds dynamic calculation 
 
@@ -4415,6 +4415,8 @@ const TFIs = [
 	{source: "BANKIER", symbol: "WIG20", name: "WIG20", type: "Generic", firm: "GPW"},
 	{source: "BANKIER", symbol: "MWIG40", name: "MWIG40", type: "Generic", firm: "GPW"},
 	{source: "BANKIER", symbol: "SWIG80", name: "SWIG80", type: "Generic", firm: "GPW"},
+	{source: "BANKIER", symbol: "MWIG40TR", name: "MWIG40TR", type: "Generic", firm: "GPW"},
+	{source: "BANKIER", symbol: "SWIG80TR", name: "SWIG80TR", type: "Generic", firm: "GPW"},
 	{source: "BANKIER", symbol: "WIG.GAMES", name: "WIG.GAMES", type: "Generic", firm: "GPW"},
 	{source: "BANKIER", symbol: "WIGTECH", name: "WIGTECH", type: "Generic", firm: "GPW"},
 	{source: "BANKIER", symbol: "WIG-INFO", name: "WIG-INFORMATYKA", type: "Generic", firm: "GPW"},

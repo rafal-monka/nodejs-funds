@@ -99,7 +99,7 @@ exports.callbackFunction = (item, value)=> {
             value: row[1]
     }}).sort((a,b) => new Date(a.date) > new Date(b.date) ? 1 : -1)
 
-    arr.forEach((a, inx) => console.log(item.symbol, 'arr.inx', inx, 'date', a.date))
+    //arr.forEach((a, inx) => console.log(item.symbol, 'arr.inx', inx, 'date', a.date))
 
     //@@@
     //deleteRecords(item.symbol)
@@ -114,7 +114,7 @@ exports.callbackFunction = (item, value)=> {
             } else {
                 console.log("Multiple documents inserted to Collection", docs.length);
                 //docs.forEach((doc, inx) => console.log('docs.inx', inx, 'date', doc.date))
-                
+                console.log('UPDATE', item.symbol, arr[arr.length-1].date)
                 TFIMetaDataCtrl.update(item.symbol, {
                     lastDate: arr[arr.length-1].date,
                     status: 'OK',

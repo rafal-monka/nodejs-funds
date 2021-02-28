@@ -3,6 +3,7 @@ const WebSocket = require('ws');
 
 const TFIMetaDataCtrl = require('./app/controllers/tfi-controller.js')
 const AnalyseTrendsCtrl = require('./app/controllers/analyse-trends-controller')
+const CalculateStatsCtrl = require('./app/controllers/calculate-stats-controller')
 //const auth = require('./auth');
 //const { get } = require('http');
 
@@ -61,6 +62,11 @@ console.log('closing', wssClientID)
                 case 'CALCLR-INIT':
                     // console.log('on-message.CALCLR-INIT')
                     AnalyseTrendsCtrl.calcLRFunds(wssClientID, symbols)                     
+                    break
+
+                case 'CALCSTAT-INIT':
+                    // console.log('on-message.CALCSTAT-INIT')
+                    CalculateStatsCtrl.calcStats(wssClientID, symbols)                     
                     break
 
                 case 'TEST':

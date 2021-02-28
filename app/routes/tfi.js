@@ -10,7 +10,7 @@ router.get('/delete/:symbol', TFIController.daleteValues)
 router.get('/load/:symbols', TFIController.loadTFIValues)
 router.get('/loadmybonds', TFIController.loadMyBondTFIValues)
 router.get('/copy/:symbolfrom/:symbolto', TFIController.copyValues)
-
+router.get('/export/:symbols', TFIController.getExport)
 
 // router.get("/run/:symbol", (req, res) => {    
 //     console.log('/api/run/:symbol', req.params.symbol)

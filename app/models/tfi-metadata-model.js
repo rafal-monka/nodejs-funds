@@ -21,6 +21,7 @@ const TFIMetaDataSchema = new mongoose.Schema({
     CONST_LAST_PERIOD_VALUE: Number,
     CONST_LAST_PERIOD: Number,
     look: Number,
+    dataStat: String,
     created_at: { type: Date, default: new Date() },
     updated_at: { type: Date, default: null }
 })

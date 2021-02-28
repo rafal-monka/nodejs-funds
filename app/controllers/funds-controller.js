@@ -8,6 +8,9 @@ const CONST_DATE_MIN_TS = "2020-07-01"
 const CONST_TAX = 0.81
 const CONST_ONE_DAY = 24*60*60*1000
 const CONST_ONE_YEAR = 365 * CONST_ONE_DAY
+const CONST_LO_LIMIT_AKC = -7.0/2
+const CONST_LO_LIMIT_OBL = -2.0/2
+const CONST_LO_LAST_PERIOD = 90*24*60*60*1000
 
 let monthlyArrOBL = []
 let monthlyArrAKC = []
@@ -112,7 +115,7 @@ exports.getData = (req, res, next) => {
             //last day od previous month
             let previousMonthLastValue = arr.map(f => {
                 return { 
-                    symbol: f.symbol, 
+                    symbol: f.symbol,                     
                     data: f.data
                         .filter(val => new Date(val.date).getTime() <= utils.getLastDayOfPreviousMonth(f.data[f.data.length-1].date).getTime())
                         .map(d => {
@@ -127,10 +130,17 @@ exports.getData = (req, res, next) => {
                 }
             }) 
             //current (this) month values
-            let currentValues = arr                
+            let dateQ = new Date(new Date().getTime() - CONST_LO_LAST_PERIOD).getTime()
+            let currentValues = arr 
+                .filter(f => invs.findIndex(inv => inv.symbol === f.symbol && (inv.dateEnd === null || inv.dateEnd === undefined)) > -1 )               
                 .map(f => {
                     return { 
                         symbol: f.symbol, 
+                        minMaxLastQ: f.data
+                            .filter(val => new Date(val.date).getTime() > dateQ) 
+                            .reduce(([min, max], v) => [
+                                Math.min(min, v.value) || min,
+                                Math.max(max, v.value) || max], [Infinity, -Infinity]),
                         data: f.data
                             .filter(val => new Date(val.date).getTime() > utils.getLastDayOfPreviousMonth(f.data[f.data.length-1].date).getTime())
                             //.sort((a,b) => new Date(a.date) > new Date(b.date) ? 1 : -1)
@@ -149,7 +159,7 @@ exports.getData = (req, res, next) => {
                 let prevMonth = previousMonthLastValue.filter(pf => pf.symbol === el.symbol)
                 el.data.unshift(prevMonth[0].data[0])
                 let type = invs.filter(inv => inv.symbol === el.symbol)[0].type 
-                let threshold = (type === 'AKC' ? -7.0 : -2.0) //###CONST
+                let threshold = (type === 'AKC' ? CONST_LO_LIMIT_AKC : CONST_LO_LIMIT_OBL) 
                 let lo = Math.round( el.data[0].value * (100+threshold)/100 * 100)/100
 
                 let data = el.data.map(val => {
@@ -161,6 +171,11 @@ exports.getData = (req, res, next) => {
                     ]
                 })
                 //let color = type === 'OBL' ? '0,'+(Math.random()*255)+',255':'255,'+(Math.random()*255)+',0'
+                
+                let valMin = Math.min(el.minMaxLastQ[0], lo)
+                let valCurrent = data[data.length-1][2]
+                let valLastDayOfPrevMonth = data[0][2]
+                //console.log(el.symbol, 'lo, valMin, el.minMaxLastQ[1]', lo, valMin, el.minMaxLastQ[1])
                 return {
                     name: el.symbol,
                     marker: {
@@ -169,7 +184,19 @@ exports.getData = (req, res, next) => {
                     //color: 'rgba('+color+',1.0)',
                     data: data,
                     fundType: type,
-                    lo: lo
+                    minMaxLastQ: el.minMaxLastQ,
+                    valLastDayOfPrevMonth: valLastDayOfPrevMonth,
+                    valLO: lo,
+                    valCurrent: valCurrent,
+                    valMin: valMin,
+                    currentValueColor: valCurrent > valLastDayOfPrevMonth ? 'green': valCurrent > lo ? 'orange' : 'red',
+                    valScaled: {
+                        lo: scaledValue(lo, valMin, el.minMaxLastQ[1]),
+                        min: scaledValue(el.minMaxLastQ[0], valMin, el.minMaxLastQ[1]),
+                        max: scaledValue(el.minMaxLastQ[1], valMin, el.minMaxLastQ[1]),
+                        current: scaledValue(data[data.length-1][2], valMin, el.minMaxLastQ[1]),
+                        lastPrevMonth: scaledValue(data[0][2], valMin, el.minMaxLastQ[1])
+                    }
                 }
             })
 
@@ -210,6 +237,10 @@ exports.getData = (req, res, next) => {
             })
         })
         //.catch (next) 
+}
+
+scaledValue = (value, min, max) => {
+    return Math.round( (300 / (max-min)) * (value - min) ) 
 }
 
 setTable = (investment, obs, monthlyArr) => {

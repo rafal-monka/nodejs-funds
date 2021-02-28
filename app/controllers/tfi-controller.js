@@ -12,6 +12,38 @@ const { json } = require("express")
 
 const CONST_COPY_MIN_DATE = new Date("2020-01-01")
 
+exports.getExport = (req, res, next) => { 
+    let query = {}
+    if (req.params.symbols !== '*') {
+        //query = {symbol: req.params.symbol}  
+        let symbols = req.params.symbols.split(',').map(item => {return {symbol: item}})
+        //console.log(symbols)    
+            //let query = multi ? { $or: [ {symbol: 'TFI4409'}, {symbol: 'TFI8172'} ] } : { symbol: req.params.symbol } 
+        
+        query = { $or: symbols }
+    }
+
+    TFIMetaData.find(query).then(function (result) {
+        let output = result.map(tfi => {
+            let dataStat = JSON.parse(tfi.dataStat)
+            return {
+                symbol: tfi.symbol,
+                min1: dataStat.minMaxWithout202003[0],
+                max1: dataStat.minMaxWithout202003[1],
+                min: dataStat.minMax[0],
+                max: dataStat.minMax[1],
+                dataROI_value: dataStat.dataROI.value,
+                dataROI_from: dataStat.dataROI.dateFrom,
+                dataROI_dateTo: dataStat.dataROI.dateTo,
+                dataROI_days: dataStat.dataROI.days,
+                dataYearAvgYield: dataStat.dataYearAvgYield
+            }
+        })
+        res.status(200).json(output)            
+    })
+    .catch (next)            
+}
+
 exports.read = (symbol) => {
     return TFIMetaData.findOne({symbol: symbol})    
 }
