@@ -72,14 +72,17 @@ function calcMonthlyValues(query, period) {
                                         case 'Q': 
                                             change = getQuarter(current.date) !== getQuarter(previous.date)
                                             break;
-                                        default: 
+                                        case 'M': 
                                             change = current.date.getMonth() !== previous.date.getMonth()
+                                            break; 
+                                        default: //daily
+                                            change = true
                                             break;
                                         }
                                     //if period (month, quarter, year) changes or last data
                                     if (change || inx === data.length-1) {
                                         monthly.push([
-                                            new Date(previous.date.getFullYear(), previous.date.getMonth(), 1, 12).getTime(),
+                                            new Date(previous.date.getFullYear(), previous.date.getMonth(), (period === 'D') ? previous.date.getDate() : 1, 12).getTime(),
                                             // new Date(previous.date.getFullYear(), previous.date.getMonth(), 1, 12).toISOString().substring(0,10),
                                             Math.round( (current.value - previous.value)/previous.value * 100 * 100)/100
                                         ])
@@ -116,8 +119,8 @@ function calcMonthlyValues(query, period) {
                         out.push({
                             name: arr[item].symbol, 
                             data: monthly,
-                            tickmarkPlacement: 'on',
-                            pointPlacement: 'on', //https://www.highcharts.com/forum/viewtopic.php?t=40059
+                            //tickmarkPlacement: 'on',
+                            //pointPlacement: 'on', //https://www.highcharts.com/forum/viewtopic.php?t=40059
                             statData: statData                                
                         })
                     }   
