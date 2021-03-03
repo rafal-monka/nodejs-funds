@@ -155,6 +155,53 @@ exports.loadTFIValues = (req, res, next) => {
     run(0, new Date(), req.params.symbols)  
 }
 
+exports.getValuesDate = (req, res, next) => {  
+    //console.log('getValues req.params.symbol', req.params.symbol)
+        //let multi = req.params.symbol.indexOf(',') > -1
+        let symbols = req.params.symbol.split(',').map(item => {return {symbol: item}})
+    //console.log(symbols)    
+        //let query = multi ? { $or: [ {symbol: 'TFI4409'}, {symbol: 'TFI8172'} ] } : { symbol: req.params.symbol } 
+    
+        let query = { $or: symbols, date: {$gte: new Date(req.params.date)} }
+    //    console.log('query', query)
+    
+        TFIValues.find( query ) 
+            .then(function (result) {
+                //console.log(result.length) 
+                let arr = []
+                result.forEach(item => {
+                    //console.log('arr[item.symbol]', item.symbol, arr[item.symbol])
+                    if (arr[item.symbol] === undefined) arr[item.symbol] = {symbol: item.symbol, data: []}
+                    arr[item.symbol].data.push([
+                        new Date(item.date).getTime(),
+                        item.value
+                    ])
+                }) 
+                //console.log(arr)   
+    
+                let out = []
+                Object.getOwnPropertyNames(arr).map((item, index) => {
+                    if (index>0) {
+                        let ordered = arr[item].data.sort((a,b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
+                                                    .map(val => [
+                                                        val[0],
+                                                        val[1],
+                                                        Math.round(100*(val[1]-arr[item].data[0][1])/arr[item].data[0][1] * 100)/100
+                                                    ])
+                        out.push({
+                            name: arr[item].symbol, 
+                            data: ordered
+                        })
+                    }   
+                })
+                //console.log(JSON.stringify(out))
+                //console.log(out)
+                // arr.forEach(item )
+                res.status(200).json(out)            
+            })
+            .catch (next) 
+}
+
 exports.getValues = (req, res, next) => {  
 //console.log('getValues req.params.symbol', req.params.symbol)
     //let multi = req.params.symbol.indexOf(',') > -1
@@ -167,14 +214,14 @@ exports.getValues = (req, res, next) => {
 
     TFIValues.find( query ) 
         .then(function (result) {
-            console.log(result.length) 
+            //console.log(result.length) 
             let arr = []
             result.forEach(item => {
                 //console.log('arr[item.symbol]', item.symbol, arr[item.symbol])
                 if (arr[item.symbol] === undefined) arr[item.symbol] = {symbol: item.symbol, data: []}
                 arr[item.symbol].data.push([
                     new Date(item.date).getTime(),
-                    item.value                 
+                    item.value                                     
                 ])
             }) 
             //console.log(arr)   

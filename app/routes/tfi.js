@@ -4,6 +4,7 @@ const router = express.Router()
 const TFIController = require('../controllers/tfi-controller.js')
 
 router.get('/values/:symbol', TFIController.getValues)
+router.get('/values/:symbol/:date', TFIController.getValuesDate)
 router.get('/metadata/:symbol', TFIController.getMetadata)
 router.get('/look/:symbol', TFIController.getLook)
 router.get('/delete/:symbol', TFIController.daleteValues)
