@@ -4,6 +4,7 @@ const WebSocket = require('ws');
 const TFIMetaDataCtrl = require('./app/controllers/tfi-controller.js')
 const AnalyseTrendsCtrl = require('./app/controllers/analyse-trends-controller')
 const CalculateStatsCtrl = require('./app/controllers/calculate-stats-controller')
+const RobotCtrl = require('./app/controllers/robot-controller')
 //const auth = require('./auth');
 //const { get } = require('http');
 
@@ -69,6 +70,11 @@ console.log('closing', wssClientID)
                     CalculateStatsCtrl.calcStats(wssClientID, symbols)                     
                     break
 
+                case 'ROBOT-SIM-PICK-INIT':
+                    // console.log('on-message.CALCSTAT-INIT')
+                    RobotCtrl.runSimPicks(wssClientID, symbols)                     
+                    break
+                    
                 case 'TEST':
                     let msg = JSON.parse(obj)
                     response = { 

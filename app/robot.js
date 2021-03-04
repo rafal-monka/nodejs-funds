@@ -133,6 +133,7 @@ function processOccasions(symbol, values, date, minTFIValuesDate) {
             let startOfPeriod = new Date(new Date(date).getTime() - run.period_length*CONST_DAY)
             let finding = findOccasion(startOfPeriod, date, run, values)
             if (finding !== null) occasions.push({
+                values: values, //###@@@
                 symbol: symbol,
                 run_date: date,
                 run_startOfPeriod: startOfPeriod,
@@ -155,10 +156,13 @@ function processOccasions(symbol, values, date, minTFIValuesDate) {
 }
 
 exports.pickOccasions = (symbol) => {
-
+    //symbols = symbols.split(',').map(item => ({symbol: item}))
+// console.log('robot.pickOccasions', symbol) 
     let maxPeriod = Math.max(...paramsArray.period_length)
-    let minTFIValuesDate = new Date(new Date().getTime() - 1000*60*60*24*(maxPeriod+CONST_LONG_TERM_TREND_DAYS))
-
+    let today = new Date()
+    today.setHours(0, 0, 0, 0)
+    let minTFIValuesDate = new Date(new Date(today.toISOString().substring(0,10)).getTime() - 1000*60*60*24*(maxPeriod+CONST_LONG_TERM_TREND_DAYS))
+// console.log('minTFIValuesDate', minTFIValuesDate) 
     // return new Promise(function(resolve, reject) {
     //     resolve(minTFIValuesDate)
     // })
@@ -178,7 +182,7 @@ exports.pickOccasions = (symbol) => {
                     date: new Date(point.date).getTime(),
                     date2: point.date,
                     value: point.value,
-                    change: (index === 0 ? 0.0 : Math.round( (point.value - result[0].value)/result[0].value*100*100)/100 )                  
+                    change: Math.round( (point.value - result[0].value)/result[0].value*100*100)/100                   
                 })) 
                 let occasions = processOccasions(symbol, values, CONST_SIMULATE, minTFIValuesDate)
                 resolve(occasions)                          

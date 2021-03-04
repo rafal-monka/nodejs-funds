@@ -161,8 +161,9 @@ exports.getValuesDate = (req, res, next) => {
         let symbols = req.params.symbol.split(',').map(item => {return {symbol: item}})
     //console.log(symbols)    
         //let query = multi ? { $or: [ {symbol: 'TFI4409'}, {symbol: 'TFI8172'} ] } : { symbol: req.params.symbol } 
-    
-        let query = { $or: symbols, date: {$gte: new Date(req.params.date)} }
+        let minDate = new Date(req.params.date)
+// console.log('minDate', minDate) 
+        let query = { $or: symbols, date: {$gte: minDate} }
     //    console.log('query', query)
     
         TFIValues.find( query ) 
@@ -186,7 +187,8 @@ exports.getValuesDate = (req, res, next) => {
                                                     .map(val => [
                                                         val[0],
                                                         val[1],
-                                                        Math.round(100*(val[1]-arr[item].data[0][1])/arr[item].data[0][1] * 100)/100
+                                                        Math.round(100*(val[1]-arr[item].data[0][1])/arr[item].data[0][1] * 100)/100,
+                                                        new Date(val[0])
                                                     ])
                         out.push({
                             name: arr[item].symbol, 
