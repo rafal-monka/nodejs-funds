@@ -24,7 +24,8 @@ const paramsBuy = {
 }
 
 const paramsSell = {
-    sell_days_delay: [3, 4, 5]
+    sell_days_delay: [3, 4, 5],
+    sell_threshold: [-1, 6.0]
 }
 
 //------------------------------------------------OCCASION (PICKS)
@@ -227,7 +228,7 @@ function makeBuy(params, occasion, values) {
     // console.log('occasion.run_date', occasion.run_date)
     let init = undefined
     let future_values = values.filter((value, index) => value.date >= occasion.run_date)
-    if (future_values.length >= params.buy_days_delay + 1) {
+    if (params.buy_days_delay <= future_values.length-1) {
         init = future_values[params.buy_days_delay]
     }
     //
@@ -241,6 +242,9 @@ function makeBuy(params, occasion, values) {
             initDate: init.date,
             initValue: init.value,
             potentialYield: finding.stat.max_cur_diff,
+            occasionParams: JSON.stringify(occasion.run_params),
+            occasionStat: JSON.stringify(finding.stat),
+            occasionTrend: JSON.stringify(finding.trend),
             buyParams: JSON.stringify(params),
         }
     } else {
@@ -284,9 +288,12 @@ exports.simulateBuys = (symbol) => {
 //------------------------------------------------SELL
 function processSells(buys, values) {
     let runs = []
-    paramsSell.sell_days_delay.forEach(sell_days_delay => {  
-        runs.push({
-            sell_days_delay: sell_days_delay    
+    paramsSell.sell_days_delay.forEach(sell_days_delay => { 
+        paramsSell.sell_threshold.forEach(sell_threshold => {  
+            runs.push({
+                sell_days_delay: sell_days_delay,
+                sell_threshold: sell_threshold   
+            })
         })
     })
 
@@ -302,10 +309,59 @@ function processSells(buys, values) {
 }
 
 function makeSell(params, buy, values) {
+    let end = undefined
+    let stopValue = undefined
+    let status
+    let future_values = values.filter((value, index) => value.date >= buy.initDate)
+
+    //search for value that meets sell criteria (yield)
+    let i = 0
+    let threshold = params.sell_threshold > 0.0 ? params.sell_threshold : buy.potentialYield //???*level 
+    while (i < future_values.length) {
+// console.log('searching...', i, buy.initDate, buy.initValue, future_values[i])
+        let tmp_yield = Math.round( (future_values[i].value - buy.initValue)/buy.initValue*100 *100)/100
+// console.log('tmp_yield', tmp_yield, threshold)
+        if (tmp_yield >= threshold) {
+            stopValue = future_values[i]
+// console.log('found')
+            break;
+        }
+        i++
+    }
+
+    if (stopValue !== undefined) {
+// console.log('selling?...', i + params.sell_days_delay, future_values.length-1, i + params.sell_days_delay <= future_values.length-1)
+        if (i + params.sell_days_delay <= future_values.length-1) {
+            end = future_values[i + params.sell_days_delay]
+        }
+    }
+
+    //
+    if (end === undefined) {
+        status = 'HOLD',
+        end = future_values[future_values.length-1]
+    } else {
+        status = 'SOLD'
+    }
+
     return {
-        fakesell: 1,
+        symbol: buy.symbol,
         occassion_id: buy.occasion_id,
-        buy: JSON.stringify(buy)
+        buy_id: buy._id,
+        status: status,
+        run_date: buy.run_date,
+        initDate: buy.initDate,
+        initValue: buy.initValue,
+        potentialYield: buy.potentialYield,
+        sellDate: end.date,
+        sellValue: end.value,
+        resultYield: Math.round( (end.value - buy.initValue)/buy.initValue*100 *100)/100,
+        resultDays: (new Date(end.date)-new Date(buy.initDate))/CONST_DAY,
+        occasionParams: buy.occasionParams,
+        occasionStat: buy.occasionStat,
+        occasionTrend: buy.occasionTrend,
+        buyParams: buy.buyParams,
+        sellParams: JSON.stringify(params)
     }
 }
 
@@ -329,8 +385,8 @@ exports.simulateSells = (symbol) => {
                                 .sort({date: 1})
                                 .then(function (values) {
                                     values = values.map(val => ({date: new Date(val.date)/*@@@.getTime()*/, value: val.value}))
-                                    let sells = processSells(buys, values)
                                     //console.log('values', values)
+                                    let sells = processSells(buys, values)
                                     resolve(sells)
                                 })
                         })

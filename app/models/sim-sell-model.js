@@ -11,9 +11,14 @@ const simSellSchema = new mongoose.Schema({
     potentialYield: Number,
     sellDate: Date,
     sellValue: Number,
-    active: String, //KEPT, SOLD 
     resultYield: Number,
+    resultDays: Number,
+    occasionParams: String,
+    occasionStat: String,
+    occasionTrend: String,
+    buyParams: String,
     sellParams: String,
+    status: String, //HOLD, SOLD
     created_at: { type: Date, default: new Date() },
     updated_at: { type: Date, default: null }
 })

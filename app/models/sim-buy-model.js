@@ -8,6 +8,9 @@ const simBuySchema = new mongoose.Schema({
     initDate: Date,
     initValue: Number,
     potentialYield: Number, 
+    occasionParams: String,
+    occasionStat: String,
+    occasionTrend: String,
     buyParams: String,
     created_at: { type: Date, default: new Date() },
     updated_at: { type: Date, default: null }
