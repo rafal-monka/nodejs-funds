@@ -112,9 +112,9 @@ exports.callbackFunction = (item, value)=> {
                     errorMsg: err.toString().substring(0,100)
                 })
             } else {
-                console.log("Multiple documents inserted to Collection", docs.length);
+                //console.log("Multiple documents inserted to Collection", docs.length);
                 //docs.forEach((doc, inx) => console.log('docs.inx', inx, 'date', doc.date))
-                console.log('UPDATE', item.symbol, arr[arr.length-1].date)
+                //console.log('UPDATE', item.symbol, arr[arr.length-1].date)
                 TFIMetaDataCtrl.update(item.symbol, {
                     lastDate: arr[arr.length-1].date,
                     status: 'OK',

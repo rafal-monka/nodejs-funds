@@ -151,8 +151,20 @@ exports.loadMyBondTFIValues = (req, res, next) => {
 }
 
 exports.loadTFIValues = (req, res, next) => {
-    console.log('loadTFIValues', req.params.symbols)   
-    run(0, new Date(), req.params.symbols)  
+    // console.log('loadTFIValues', req.params.symbols)
+    let symbols = []
+    if (req.params.symbols !== '*') {
+        symbols = req.params.symbols.split(',') 
+        run(0, new Date(), symbols)
+        res.json('Loading started for '+symbols)
+    } else {
+        let query = {}
+        TFIMetaData.find(query).then(function (result) {
+            let symbols = result.map(res => res.symbol)
+            res.status(200).json('Loading started for '+symbols) 
+            run(0, new Date(), symbols)           
+        })
+    }          
 }
 
 exports.getValuesDate = (req, res, next) => {  
@@ -270,6 +282,8 @@ exports.notifyClient = (wssClientID, event, symbol, data) => {
 
 
 run = (wssClientID, currentDate, symbols) => {
+    console.log(new Date(), 'tfi-controller.run', symbols)    
+    let timestampStart
     this.currentDate = currentDate
     let pad = new Launcher(
         5, 
@@ -304,11 +318,15 @@ run = (wssClientID, currentDate, symbols) => {
         },
         //finalCallBack
         (param) => {         
-            console.log('tfi-controller run final')                                                         
+            console.log('tfi-controller run final', timestampStart, new Date())                                                         
         } 
     );
+    timestampStart = new Date()
     pad.run();    
 }
+
+
+
 
 //--------------------------------temp
 exports.tempAddFieldSource = () => {

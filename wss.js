@@ -72,9 +72,14 @@ console.log('closing', wssClientID)
 
                 case 'ROBOT-SIM-PICK-INIT':
                     // console.log('on-message.CALCSTAT-INIT')
-                    RobotCtrl.runSimPicks(wssClientID, symbols)                     
+                    RobotCtrl.launchOccasionPicks(wssClientID, symbols, 'SIMULATION')                     
                     break
                     
+                case 'ROBOT-REAL-PICK-INIT':
+                    // console.log('on-message.CALCSTAT-INIT')
+                    RobotCtrl.launchOccasionPicks(wssClientID, symbols, 'REAL')                     
+                    break                    
+
                 case 'TEST':
                     let msg = JSON.parse(obj)
                     response = { 

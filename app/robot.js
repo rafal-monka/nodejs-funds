@@ -1,9 +1,10 @@
 const TFIValues = require('./models/tfi-values-model')
 // const TFIMetaData = require('./models/tfi-metadata-model')
-const SimOccasion = require('./models/sim-occasions-model')
+const SimOccasion = require('./models/sim-occasion-model')
+const SimBuy = require('./models/sim-buy-model')
 const linReg = require('./linear-regression.js')
 
-const CONST_SIMULATE = '#SIMULATE'
+// const CONST_SIMULATE = '#SIMULATE'
 const CONST_SIMULATE_MIN_RUN_DATE = new Date("2020-10-01")
 
 const CONST_DAY = 1000*60*60*24
@@ -19,7 +20,69 @@ const paramsPick = {
 }
 
 const paramsBuy = {
-    buy_days_delay: [2,3]
+    buy_days_delay: [2, 3]
+}
+
+const paramsSell = {
+    sell_days_delay: [3, 4, 5]
+}
+
+//------------------------------------------------OCCASION (PICKS)
+function processOccasions(symbol, values, mode, minTFIValuesDate) {
+    let runs = []
+    let runDates = []
+
+    //return values
+
+    if (mode === 'SIMULATION') {
+        runDates = values.filter(value => value.date >= CONST_SIMULATE_MIN_RUN_DATE.getTime()).map(value => value.date2)        
+        paramsPick.long_term_trend.forEach(long_term_trend => {
+            paramsPick.period_length.forEach(period_length => {
+                paramsPick.potential_full.forEach(potential_full => {
+                    paramsPick.potential_level.forEach(potential_level => {
+                        paramsPick.date_min_before.forEach(date_min_before => {
+                            runs.push({
+                                long_term_trend: long_term_trend,
+                                period_length: period_length,
+                                potential_full: potential_full,
+                                potential_level: potential_level,
+                                date_min_before: date_min_before
+                            })    
+                        })    
+                    })
+                })
+            })
+        })
+    } else {
+        //###??? production: current date and calibrated parameters...
+        runDates.push(values[values.length-1].date2)
+        runs.push({
+            consider_trend: true,
+            period_length: 60,
+            potential_full: 10.0,
+            potential_level: 0.8,
+            date_min_before: 14
+        }) 
+    }
+
+    let occasions = []
+    runDates.forEach(date => {
+        runs.forEach(run => {
+            let startOfPeriod = new Date(new Date(date).getTime() - run.period_length*CONST_DAY)
+            let finding = findOccasion(startOfPeriod, date, run, values)
+            if (finding !== null) occasions.push({
+                //values: values, //###---
+                symbol: symbol,
+                run_date: date,
+                run_startOfPeriod: startOfPeriod,
+                minTFIValuesDate: minTFIValuesDate,
+                run_params: run,
+                finding: finding       
+            })
+        })
+    })
+
+    return occasions
 }
 
 function findOccasion(startOfPeriod, date, params, values) {
@@ -108,72 +171,7 @@ function findOccasion(startOfPeriod, date, params, values) {
     }
 }
 
-function processOccasions(symbol, values, date, minTFIValuesDate) {
-    let runs = []
-    let runDates = []
-
-    //return values
-
-    if (date === CONST_SIMULATE) {
-        runDates = values.filter(value => value.date >= CONST_SIMULATE_MIN_RUN_DATE.getTime()).map(value => value.date2)        
-        paramsPick.long_term_trend.forEach(long_term_trend => {
-            paramsPick.period_length.forEach(period_length => {
-                paramsPick.potential_full.forEach(potential_full => {
-                    paramsPick.potential_level.forEach(potential_level => {
-                        paramsPick.date_min_before.forEach(date_min_before => {
-                            runs.push({
-                                long_term_trend: long_term_trend,
-                                period_length: period_length,
-                                potential_full: potential_full,
-                                potential_level: potential_level,
-                                date_min_before: date_min_before
-                            })    
-                        })    
-                    })
-                })
-            })
-        })
-    } else {
-        //###??? production: current date and calibrated parameters...
-        runDates.push(values[values.length-1].date2)
-        runs.push({
-            consider_trend: true,
-            period_length: 60,
-            potential_full: 10.0,
-            potential_level: 0.8,
-            date_min_before: 14
-        }) 
-    }
-
-    let occasions = []
-    runDates.forEach(date => {
-        runs.forEach(run => {
-            let startOfPeriod = new Date(new Date(date).getTime() - run.period_length*CONST_DAY)
-            let finding = findOccasion(startOfPeriod, date, run, values)
-            if (finding !== null) occasions.push({
-                //values: values, //###---
-                symbol: symbol,
-                run_date: date,
-                run_startOfPeriod: startOfPeriod,
-                minTFIValuesDate: minTFIValuesDate,
-                run_params: run,
-                finding: finding       
-            })
-        })
-    })
-
-    return occasions
-    // return {
-    //     //values: values,
-    //     //run_space: runs,
-    //     //run_count: runs.length, 
-    //     //run_count_dates: runDates.length,
-    //     //run_count_full: runDates.length * runs.length, 
-    //     occasions: occasions
-    // }
-}
-
-exports.pickOccasions = (symbol) => {
+exports.pickOccasions = (symbol, mode) => {
     let maxPeriod = Math.max(...paramsPick.period_length)
     let today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -195,7 +193,7 @@ exports.pickOccasions = (symbol) => {
                     value: point.value,
                     change: Math.round( (point.value - result[0].value)/result[0].value*100*100)/100                   
                 })) 
-                let occasions = processOccasions(symbol, values, CONST_SIMULATE, minTFIValuesDate)
+                let occasions = processOccasions(symbol, values, mode, minTFIValuesDate)
                 resolve(occasions)                          
             }).catch(e => {
                 reject(e.toString())
@@ -218,7 +216,7 @@ function processBuys(occasions, values) {
     runs.forEach(params => {
         occasions.forEach(occasion => {
             let buy = makeBuy(params, occasion, values)
-            buys.push(buy)
+            if (buy !== null) buys.push(buy)
         })
     })
 
@@ -226,18 +224,28 @@ function processBuys(occasions, values) {
 } 
 
 function makeBuy(params, occasion, values) {
-    console.log('values.length', values.length)
-    let init = values
-
-    let finding = JSON.parse(occasion.finding)
-    return {
-        symbol: occasion.symbol, 
-        run_date: occasion.run_date,
-        occasion_id: occasion._id,
-        initDate: null,
-        initValue: null,
-        potentialYield: finding.stat.max_cur_diff,
-        buyParams: JSON.stringify(params),
+    // console.log('occasion.run_date', occasion.run_date)
+    let init = undefined
+    let future_values = values.filter((value, index) => value.date >= occasion.run_date)
+    if (future_values.length >= params.buy_days_delay + 1) {
+        init = future_values[params.buy_days_delay]
+    }
+    //
+    if (init !== undefined) {
+        console.log('params.buy_days_delay, occasion.run_date', params.buy_days_delay, occasion.run_date, init)
+        let finding = JSON.parse(occasion.finding)
+        return {
+            symbol: occasion.symbol, 
+            run_date: occasion.run_date,
+            occasion_id: occasion._id,
+            initDate: init.date,
+            initValue: init.value,
+            potentialYield: finding.stat.max_cur_diff,
+            buyParams: JSON.stringify(params),
+        }
+    } else {
+        console.log(occasion.symbol, 'Can not buy yet. No values.', occasion.run_date, params.buy_days_delay)
+        return null
     }
 }
 
@@ -249,7 +257,7 @@ exports.simulateBuys = (symbol) => {
                        .sort({symbol: 1, run_date: 1}) 
                        .then(function (occasions) {
                             let minTFIValuesDate = occasions.reduce((min, value) => Math.min(min, new Date(value.run_date)) || min, new Date()  )
-                            console.log('minTFIValuesDate', new Date(minTFIValuesDate))
+                            //console.log('minTFIValuesDate', new Date(minTFIValuesDate))
                             let query = {
                                 symbol: symbol,
                                 date: {$gte: minTFIValuesDate } 
@@ -257,11 +265,12 @@ exports.simulateBuys = (symbol) => {
                             //values
                             TFIValues
                                 .find(query)
-                                .select({ "date": 1, "value": 1})
+                                .select({ "date": 1, "value": 1, "_id": 0})
                                 .sort({date: 1})
                                 .then(function (values) {
+                                    values = values.map(val => ({date: new Date(val.date)/*@@@.getTime()*/, value: val.value}))
                                     let buys = processBuys(occasions, values)
-                                    //console.log('buys', buys)
+                                    //console.log('values', values)
                                     resolve(buys)
                                 })
                        })
@@ -273,10 +282,58 @@ exports.simulateBuys = (symbol) => {
 
 
 //------------------------------------------------SELL
-exports.simulateSell = () => {
+function processSells(buys, values) {
+    let runs = []
+    paramsSell.sell_days_delay.forEach(sell_days_delay => {  
+        runs.push({
+            sell_days_delay: sell_days_delay    
+        })
+    })
+
+    let sells = []
+    runs.forEach(params => {
+        buys.forEach(buy => {
+            let sell = makeSell(params, buy, values)
+            sells.push(sell)
+        })
+    })
+
+    return sells
+}
+
+function makeSell(params, buy, values) {
+    return {
+        fakesell: 1,
+        occassion_id: buy.occasion_id,
+        buy: JSON.stringify(buy)
+    }
+}
+
+exports.simulateSells = (symbol) => {
+    console.log('robot.simulateSell', symbol)
     return new Promise(function(resolve, reject) {
         try {
-            resolve('simulateSell')
+            SimBuy.find({symbol: symbol})
+                       .sort({symbol: 1, run_date: 1, initDate: 1}) 
+                       .then(function (buys) {
+                            let minTFIValuesDate = buys.reduce((min, value) => Math.min(min, new Date(value.initDate)) || min, new Date()  )
+                            //console.log('minTFIValuesDate', new Date(minTFIValuesDate))
+                            let query = {
+                                symbol: symbol,
+                                date: {$gte: minTFIValuesDate } 
+                            }
+                            //values
+                            TFIValues
+                                .find(query)
+                                .select({ "date": 1, "value": 1, "_id": 0})
+                                .sort({date: 1})
+                                .then(function (values) {
+                                    values = values.map(val => ({date: new Date(val.date)/*@@@.getTime()*/, value: val.value}))
+                                    let sells = processSells(buys, values)
+                                    //console.log('values', values)
+                                    resolve(sells)
+                                })
+                        })
         } catch (e) {
             reject(e.toString())
         }

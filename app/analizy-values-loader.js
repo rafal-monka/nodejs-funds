@@ -68,7 +68,7 @@ exports.callbackFunction = (item, value)=> {
                             errorMsg: err.toString().substring(0,100)
                         })
                     } else {
-                        console.log("Analizy-values-loader. Multiple documents inserted to Collection", docs.length);
+                        //console.log("Analizy-values-loader. Multiple documents inserted to Collection", docs.length);
                         TFIMetaDataCtrl.update(item.symbol, {
                             initDate: (res.initDate === null) ? arr[0].date : res.initDate,
                             lastDate: arr[arr.length-1].date,

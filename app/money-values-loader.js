@@ -290,7 +290,7 @@ exports.callbackFunction = /*async*/ (item, value)=> {
             if (err){ 
                 console.error(err);
             } else {
-                console.log("Multiple documents inserted to Collection", docs.length);
+                //console.log("Multiple documents inserted to Collection", docs.length);
             }
         });              
 
