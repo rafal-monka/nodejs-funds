@@ -156,6 +156,7 @@ exports.getData = (req, res, next) => {
                 }) 
 
             let fundsLOValues = currentValues.map(el => {
+                //console.log('el.symbol', el.symbol)
                 let prevMonth = previousMonthLastValue.filter(pf => pf.symbol === el.symbol)
                 el.data.unshift(prevMonth[0].data[0])
                 let type = invs.filter(inv => inv.symbol === el.symbol)[0].type 

@@ -9,6 +9,7 @@ const SimBuy = require('./../models/sim-buy-model')
 const SimSell = require('./../models/sim-sell-model')
 const TFIMetaDataCtrl = require('./tfi-controller')
 
+
 // const CONST_SIMULATE = '#SIMULATE'
 
 exports.launchOccasionPicks = (wssClientID, symbols, mode) => {
@@ -99,6 +100,14 @@ exports.simulatePick = (req, res, next) => {
             res.status(200).json(output)
         })
         .catch (next)
+}
+
+exports.deletePicks = (req, res, next) => { 
+    console.log('deletePicks', req.params.symbols)
+    let symbols = req.params.symbols.split(',').map(item => ({symbol: item}))
+    let query = { $or: symbols }
+    SimOccasion.deleteMany(query, function(err, result) {} )
+    res.status(200).json('Deleting pick...'+JSON.stringify(symbols))
 }
 
 //entry point to launch simulation occasion picks
@@ -301,3 +310,4 @@ exports.exportSells = (req, res, next) => {
         })
         .catch (next)
 }
+

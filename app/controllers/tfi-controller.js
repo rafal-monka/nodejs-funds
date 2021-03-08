@@ -1,3 +1,4 @@
+const email = require("./../email")
 const Launcher = require("./../launcher.js")
 const TFI = require('./../../config/TFI.js')
 const TFIValues = require('./../models/tfi-values-model')
@@ -54,7 +55,12 @@ exports.copyValues = (req, res, next) => {
         .find({symbol: req.params.symbolto})
         .sort({date: 1})
         .then(result=>{
-            let minDate = result.reduce((min, p) => p.date < min ? p.date : min, result[0].date)    
+            let minDate
+            if (result.length>0) {
+                minDate = result.reduce((min, p) => p.date < min ? p.date : min, result[0].date)    
+            } else {
+                minDate = new Date()
+            }
             console.log('minDate',minDate)
 
             TFIValues
@@ -162,7 +168,7 @@ exports.loadTFIValues = (req, res, next) => {
         TFIMetaData.find(query).then(function (result) {
             let symbols = result.map(res => res.symbol)
             res.status(200).json('Loading started for '+symbols) 
-            run(0, new Date(), symbols)           
+            run(99999, new Date(), symbols)           
         })
     }          
 }
@@ -282,6 +288,7 @@ exports.notifyClient = (wssClientID, event, symbol, data) => {
 
 
 run = (wssClientID, currentDate, symbols) => {
+    let count = [0,0]
     console.log(new Date(), 'tfi-controller.run', symbols)    
     let timestampStart
     this.currentDate = currentDate
@@ -292,7 +299,7 @@ run = (wssClientID, currentDate, symbols) => {
         (item)=>{ 
             //console.log(new Date(), 'call item:', item.symbol)
             switch (item.source.toUpperCase()) {
-                case 'MONEY': return moneyValueLoader.callFunction(item); break;
+                //OLD:case 'MONEY': return moneyValueLoader.callFunction(item); break;
                 case 'BANKIER': return bankierLoader.callFunction(item); break;
                 case 'ANALIZY': return analizyLoader.callFunction(item); break;
                 default: console.log('Error callFunction. Item source '+item.source+' not supported') 
@@ -300,17 +307,17 @@ run = (wssClientID, currentDate, symbols) => {
         },
         //callbackFunction,
         (item, value)=>{ 
-            //console.log(new Date(), 'callback item:', item.symbol)
+            console.log(new Date(), 'callback item:', item.symbol)
             switch (item.source.toUpperCase()) {
-                case 'MONEY': return moneyValueLoader.callbackFunction(item, value); break;
-                case 'BANKIER': return bankierLoader.callbackFunction(item, value); break;
-                case 'ANALIZY': return analizyLoader.callbackFunction(item, value); break;
+                //OLD:case 'MONEY': count[0] += moneyValueLoader.callbackFunction(item, value); break;
+                case 'BANKIER': count[0] += bankierLoader.callbackFunction(item, value); break;
+                case 'ANALIZY': count[1] += analizyLoader.callbackFunction(item, value); break;
                 default: console.log('Error callbackFunction. Item source '+item.source+' not supported') 
             }
         },        
         //catchFunction
         (error, item)=> {
-            console.log('Launcher catchFunction', error.toString().substring(0,100), item)
+            console.log('Launcher catchFunction', error.toString().substring(0,100), item.symbol)
             this.update(item.symbol, {                        
                 status: 'ERROR',
                 errorMsg: error.toString().substring(0,100)
@@ -318,7 +325,12 @@ run = (wssClientID, currentDate, symbols) => {
         },
         //finalCallBack
         (param) => {         
-            console.log('tfi-controller run final', timestampStart, new Date())                                                         
+            let timestampEnd = new Date()
+            console.log('tfi-controller run final', timestampStart, timestampEnd, param.length) 
+            if (true) email.sendEmail(' TFI values loaded '+new Date(), 
+                        '<div><pre>timeStart: '+timestampStart+', timeEnd:'+timestampEnd+', duration:'+(timestampEnd-timestampStart)/1000+'<br>'+JSON.stringify(count)+'</pre></div>'
+                           
+            )                                                     
         } 
     );
     timestampStart = new Date()

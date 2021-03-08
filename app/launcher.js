@@ -86,7 +86,7 @@ module.exports = class Launcher  {
                     this.runningCount--
                     this.leftItems--
                     this.checkQueue()
-                    //this.catchFunction(e, item) ###???
+                    this.catchFunction(e, item) 
                 }, 3000)
             }
         } 

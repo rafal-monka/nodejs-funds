@@ -45,6 +45,7 @@ exports.callbackFunction = (item, value)=> {
             status: 'OK',
             errorMsg: 'price is undefined'
         })
+        return 0
     } else {
         TFIMetaDataCtrl.read(item.symbol).then( res => {
             //console.log('res', res)
@@ -84,7 +85,7 @@ exports.callbackFunction = (item, value)=> {
                 })
             }
 
-            return arr
+            return arr.length
 
         })
     }

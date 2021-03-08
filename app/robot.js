@@ -25,7 +25,7 @@ const paramsBuy = {
 
 const paramsSell = {
     sell_days_delay: [3, 4, 5],
-    sell_threshold: [-1, 6.0]
+    sell_threshold: [-1, 6.0] //<-----------4.0???
 }
 
 //------------------------------------------------OCCASION (PICKS)
@@ -72,7 +72,7 @@ function processOccasions(symbol, values, mode, minTFIValuesDate) {
             let startOfPeriod = new Date(new Date(date).getTime() - run.period_length*CONST_DAY)
             let finding = findOccasion(startOfPeriod, date, run, values)
             if (finding !== null) occasions.push({
-                //values: values, //###---
+                //values: values, //---
                 symbol: symbol,
                 run_date: date,
                 run_startOfPeriod: startOfPeriod,
@@ -233,7 +233,7 @@ function makeBuy(params, occasion, values) {
     }
     //
     if (init !== undefined) {
-        console.log('params.buy_days_delay, occasion.run_date', params.buy_days_delay, occasion.run_date, init)
+        //console.log('params.buy_days_delay, occasion.run_date', params.buy_days_delay, occasion.run_date, init)
         let finding = JSON.parse(occasion.finding)
         return {
             symbol: occasion.symbol, 
@@ -248,7 +248,7 @@ function makeBuy(params, occasion, values) {
             buyParams: JSON.stringify(params),
         }
     } else {
-        console.log(occasion.symbol, 'Can not buy yet. No values.', occasion.run_date, params.buy_days_delay)
+        //console.log(occasion.symbol, 'Can not buy yet. No values.', occasion.run_date, params.buy_days_delay)
         return null
     }
 }

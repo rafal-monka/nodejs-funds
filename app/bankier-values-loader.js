@@ -99,10 +99,7 @@ exports.callbackFunction = (item, value)=> {
             value: row[1]
     }}).sort((a,b) => new Date(a.date) > new Date(b.date) ? 1 : -1)
 
-    //arr.forEach((a, inx) => console.log(item.symbol, 'arr.inx', inx, 'date', a.date))
-
-    //@@@
-    //deleteRecords(item.symbol)
+    //insert (new) records
     if (arr.length > 0) {
         TFIvalues.insertMany(arr, function (err, docs) {
             if (err){ 
@@ -128,5 +125,5 @@ exports.callbackFunction = (item, value)=> {
             errorMsg: 'Now new data'
         })
     }
-    return arr
+    return arr.length
 }

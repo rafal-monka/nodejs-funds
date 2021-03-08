@@ -10,7 +10,7 @@ getPage = (url) => {
             params: { }
         })
     } catch (error) {
-        console.log('###Error: getPage');
+        console.log('Error: getPage');
         console.error(error);
     }
 }

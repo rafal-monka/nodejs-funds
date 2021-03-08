@@ -9,5 +9,8 @@ router.get('/simulate/sell/:symbol', RobotCtrl.simulateSell)
 router.get('/simulate/launch-sell/:symbols', RobotCtrl.launchSimulateSell)
 router.get('/simulate/occasions/:symbols', RobotCtrl.getSimOccasions)
 router.get('/simulate/export-sells/:symbols', RobotCtrl.exportSells)
+router.get('/simulate/delete-picks/:symbols', RobotCtrl.deletePicks)
+
+
 
 module.exports = router

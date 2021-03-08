@@ -7,21 +7,22 @@ const TFIMetaDataSchema = new mongoose.Schema({
     name: String,
     initDate: Date,
     lastDate: Date,
-    frameDateFrom: Date,
-    frameDateTo: Date,
-    direction: Number,
+    frameDateFrom: Date, //???###
+    frameDateTo: Date, //???###
+    direction: Number, //???###
     status: String,
-    lra: Number,
-    lrb: Number,
-    lastDiff: Number,
-    lastDiffPercent: Number,
-    diff_lra: Number,
-    diff_lrb: Number,
+    lra: Number, //???###
+    lrb: Number, //???###
+    lastDiff: Number, //???###
+    lastDiffPercent: Number, //???###
+    diff_lra: Number, //???###
+    diff_lrb: Number, //???###
     errorMsg: String,
     CONST_LAST_PERIOD_VALUE: Number,
     CONST_LAST_PERIOD: Number,
     look: Number,
     dataStat: String,
+    tags: String,
     created_at: { type: Date, default: new Date() },
     updated_at: { type: Date, default: null }
 })
