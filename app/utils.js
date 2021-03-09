@@ -66,6 +66,10 @@ exports.json2Table = function(json, alignArr, colorCol) {
     return table;
   }
 
+exports.getQuarter = (date) => {
+    var month = date.getMonth() + 1;
+    return (Math.ceil(month / 3));
+}
 
 exports.createPivotTable = (arr) => {
     let pivotArr = [[]]

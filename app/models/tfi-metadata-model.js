@@ -23,6 +23,7 @@ const TFIMetaDataSchema = new mongoose.Schema({
     look: Number,
     dataStat: String,
     tags: String,
+    method: String,
     created_at: { type: Date, default: new Date() },
     updated_at: { type: Date, default: null }
 })

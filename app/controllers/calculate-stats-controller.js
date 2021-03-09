@@ -10,13 +10,6 @@ exports.calcStats = (wssClientID, symbols) => {
     statsCalculator.run(wssClientID, symbols)   
 }
 
-function getQuarter(date) {
-    var month = date.getMonth() + 1;
-    return (Math.ceil(month / 3));
-}
-
-
-
 exports.getMonthlyValues = (req, res, next) => {  
     let symbols = req.params.symbols.split(',').map(item => {return {symbol: item}})
     let minDate = new Date(req.params.date)
@@ -72,7 +65,7 @@ function calcMonthlyValues(query, period) {
                                             change = current.date.getFullYear() !== previous.date.getFullYear()
                                             break;                                    
                                         case 'Q': 
-                                            change = getQuarter(current.date) !== getQuarter(previous.date)
+                                            change = utils.getQuarter(current.date) !== utils.getQuarter(previous.date)
                                             break;
                                         case 'M': 
                                             change = current.date.getMonth() !== previous.date.getMonth()
