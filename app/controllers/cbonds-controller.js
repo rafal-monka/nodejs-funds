@@ -340,10 +340,12 @@ exports.calculate = (req, res, next) => {
                 data: data
             })
         })
+        
+        
         res.json(outArr)
 
         // res.json({
-        //     pivotTable: pivotTable,
+        //     arr: arr,
         //     outArr: outArr
         // })
 

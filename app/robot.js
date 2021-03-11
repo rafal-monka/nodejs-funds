@@ -176,7 +176,7 @@ exports.pickOccasions = (symbol, mode) => {
     let maxPeriod = Math.max(...paramsPick.period_length)
     let today = new Date()
     today.setHours(0, 0, 0, 0)
-    let minTFIValuesDate = new Date(new Date(today.toISOString().substring(0,10)).getTime() - 1000*60*60*24*(maxPeriod+CONST_LONG_TERM_TREND_DAYS))
+    let minTFIValuesDate = new Date(new Date(today.toISOString().substring(0,10)).getTime() - CONST_DAY*(maxPeriod+CONST_LONG_TERM_TREND_DAYS))
     let query = {
         symbol: symbol,
         date: {$gte: minTFIValuesDate } 

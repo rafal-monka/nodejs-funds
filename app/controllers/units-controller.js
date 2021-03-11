@@ -133,32 +133,33 @@ exports.getRegister = async (req, res, next) => {
     let period = req.params.period
 
     //read from db
-    let registers = await UnitRegister.find({
-        //symbol: symbol, 
+    let registers = await UnitRegister.find({ 
         fromDate: {$lte: onDate},
         toDate: {$gt: onDate}
     })
 
-    unique_registers = [...new Set(registers.map(reg => reg.symbol))].sort((a,b)=>a > b ? 1 : -1)
-    
+    let unique_registers = [...new Set(registers.map(reg => reg.symbol))].sort((a,b)=>a > b ? 1 : -1)
+    let symbols = unique_registers.map(item => {return {symbol: item}})
+
     try {
         let groupedArr = []
         let chartSeries = []
+
+        let minDateForAll = registers.reduce((minDate, reg) => Math.min(minDate, reg.date), new Date())
+        let valuesAll = await TFIValues.find({$or: symbols, date: {$gte: new Date(minDateForAll), $lte: new Date(onDate)}}).sort({date: 1})
+
         for (let ur=0; ur<unique_registers.length; ur++) {
             let symbol = unique_registers[ur]
             let register = registers.filter(register => register.symbol === symbol)        
-            let minDate = register.reduce((minDate, reg) => Math.min(minDate, reg.date), new Date())
-            //console.log('symbol', symbol)
-            let values = await TFIValues.find({symbol: symbol, date: {$gte: new Date(minDate), $lte: new Date(onDate)}}).sort({date: 1})
-            //console.log('register', register.length)
-            //outArr.push(values.length)
-
-            //construct
+            //let minDate = register.reduce((minDate, reg) => Math.min(minDate, reg.date), new Date())
+ 
+            //construct arrays
             let chart = {}
             let invs = []        
             invs = register.map(reg => {
                 //period changes
-                let inv_history = values.filter(value => value.date >= reg.date).map(value => {
+                let reg_values = valuesAll.filter(value => value.symbol === reg.symbol && value.date >= reg.date)
+                let inv_history = reg_values.map(value => {
                     let ok = reg.date.getTime() === value.date.getTime() ? reg.price===value.value : null
                     if (ok===false) throw Error('Error between prices '+(new Date(reg.date))+' '+symbol+' '+reg.price+'<>'+value.value)
                     return {
@@ -167,11 +168,11 @@ exports.getRegister = async (req, res, next) => {
                         value: value.value,
                         capital: Math.round( reg.units*reg.price *100)/100,
                         //price: reg.price,
-                        //units: reg.units,
+                        units: reg.units,
                         cumPercent: Math.round( 100* (value.value - reg.price)/reg.price * 100)/100,
                         cumInterests: Math.round( (value.value*reg.units - reg.price*reg.units) * 100)/100,
                         val0: Math.round( reg.price*reg.units * 100)/100,     
-                        valn: Math.round( value.value*reg.units * 100)/100               
+                        valn: Math.round( value.value*reg.units * 100)/100
                     }
                 })
                 //console.log('inv_history', inv_history.length)
@@ -186,7 +187,9 @@ exports.getRegister = async (req, res, next) => {
                     name: symbol,
                     marker: {enabled: false, symbol: "circle"},
                     data: chartData,
-                    negativeColor:' red'
+                    negativeColor:' red',
+                    value: reg.units * reg_values[reg_values.length-1][1],
+                    units: reg.units
                 }
                 chartSeries.push(chart)
 
@@ -216,10 +219,14 @@ exports.getRegister = async (req, res, next) => {
                     return item
                 })
 
-                return {            
+                return {     
+                    symbol: reg.symbol,       
                     d: reg.date,
-                    u: reg.units,
+                    units: reg.units,
                     p: reg.price,
+                    capital: Math.round( reg.units*reg.price *100)/100,
+                    curPrice: reg_values[reg_values.length-1].value,
+                    valn: reg.valn,
                     history: inv_history_grouped,                    
                 }
             })
@@ -228,6 +235,17 @@ exports.getRegister = async (req, res, next) => {
             invs.forEach(inv => {
                 inv.history.forEach(his => {
                     groupedArr.push(his)
+                })
+                groupedArr.push({
+                    symbol: inv.symbol,
+                    date: '9999-12-31',
+                    value: 0.0,
+                    interests: 0.0,
+                    units: inv.units,
+                    capital: inv.capital,
+                    curPrice: inv.curPrice,
+                    //curPrice = curPrice2: inv.history[inv.history.length-1].value,
+                    valn: inv.history[inv.history.length-1].valn
                 })
             })
 
@@ -243,8 +261,7 @@ exports.getRegister = async (req, res, next) => {
             period: period,
             chartSeries: chartSeries,
             groupedArr: groupedArr,
-            //minDate: new Date(minDate),
-            invs: 0//@@@invs
+            //minDate: new Date(minDate)
         })
 
     } catch (e) {
