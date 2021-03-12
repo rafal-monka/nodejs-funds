@@ -1,6 +1,6 @@
 const TFIValues = require('./models/tfi-values-model')
 // const TFIMetaData = require('./models/tfi-metadata-model')
-const SimOccasion = require('./models/sim-occasion-model')
+const Occasion = require('./models/occasion-model')
 const SimBuy = require('./models/sim-buy-model')
 const linReg = require('./linear-regression.js')
 
@@ -29,13 +29,13 @@ const paramsSell = {
 }
 
 //------------------------------------------------OCCASION (PICKS)
-function processOccasions(symbol, values, mode, minTFIValuesDate) {
+async function processOccasions(symbol, values, mode, minTFIValuesDate) {
     let runs = []
     let runDates = []
 
     //return values
 
-    if (mode === 'SIMULATION') {
+    if (mode === 'S') { //S=SIMULATION
         runDates = values.filter(value => value.date >= CONST_SIMULATE_MIN_RUN_DATE.getTime()).map(value => value.date2)        
         paramsPick.long_term_trend.forEach(long_term_trend => {
             paramsPick.period_length.forEach(period_length => {
@@ -54,16 +54,25 @@ function processOccasions(symbol, values, mode, minTFIValuesDate) {
                 })
             })
         })
+
+        //delete ALL in simulation mode
+        await Occasion.deleteMany({symbol: symbol, mode: 'S'}, function(err, result) {} ) 
     } else {
-        //###??? production: current date and calibrated parameters...
-        runDates.push(values[values.length-1].date2)
+        //production: current (last tfi value) date
+        let run_date = values[values.length-1].date2
+        runDates.push(run_date)
+
+        //###??? production: calibrated parameters...
         runs.push({
-            consider_trend: true,
-            period_length: 60,
+            long_term_trend: 10.0,
+            period_length: 30,
             potential_full: 10.0,
-            potential_level: 0.8,
-            date_min_before: 14
+            potential_level: 0.7,
+            date_min_before: 3
         }) 
+
+        //delete ONLY current run_date in real mode
+        await Occasion.deleteMany({symbol: symbol, mode: 'R', run_date: new Date(run_date)}, function(err, result) {} ) 
     }
 
     let occasions = []
@@ -72,7 +81,7 @@ function processOccasions(symbol, values, mode, minTFIValuesDate) {
             let startOfPeriod = new Date(new Date(date).getTime() - run.period_length*CONST_DAY)
             let finding = findOccasion(startOfPeriod, date, run, values)
             if (finding !== null) occasions.push({
-                //values: values, //---
+                mode: mode,
                 symbol: symbol,
                 run_date: date,
                 run_startOfPeriod: startOfPeriod,
@@ -182,6 +191,7 @@ exports.pickOccasions = (symbol, mode) => {
         date: {$gte: minTFIValuesDate } 
     }
 
+
     return new Promise(function(resolve, reject) {
         TFIValues
             .find(query)
@@ -257,7 +267,7 @@ exports.simulateBuys = (symbol) => {
     console.log('robot.simulateBuy', symbol)
     return new Promise(function(resolve, reject) {
         try {
-            SimOccasion.find({symbol: symbol})
+            Occasion.find({symbol: symbol})
                        .sort({symbol: 1, run_date: 1}) 
                        .then(function (occasions) {
                             let minTFIValuesDate = occasions.reduce((min, value) => Math.min(min, new Date(value.run_date)) || min, new Date()  )

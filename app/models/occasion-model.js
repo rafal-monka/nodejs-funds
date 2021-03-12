@@ -1,7 +1,8 @@
 
 const mongoose = require('mongoose')
 
-const simOccasionSchema = new mongoose.Schema({
+const occasionSchema = new mongoose.Schema({
+    mode: String,
     symbol: String, 
     run_date: Date,
     run_startOfPeriod: Date,
@@ -12,4 +13,4 @@ const simOccasionSchema = new mongoose.Schema({
     updated_at: { type: Date, default: null }
 })
 
-module.exports = mongoose.model('SimOccasion', simOccasionSchema)
+module.exports = mongoose.model('Occasion', occasionSchema)

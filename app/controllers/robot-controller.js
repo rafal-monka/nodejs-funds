@@ -4,7 +4,7 @@ const jsonexport = require('jsonexport')
 const Launcher = require("./../launcher.js")
 const TFI = require('./../../config/TFI')
 const robot = require("./../robot.js")
-const SimOccasion = require('./../models/sim-occasion-model')
+const Occasion = require('../models/occasion-model')
 const SimBuy = require('./../models/sim-buy-model')
 const SimSell = require('./../models/sim-sell-model')
 const TFIMetaDataCtrl = require('./tfi-controller')
@@ -12,8 +12,8 @@ const TFIMetaDataCtrl = require('./tfi-controller')
 
 // const CONST_SIMULATE = '#SIMULATE'
 
-exports.launchOccasionPicks = (wssClientID, symbols, mode) => {
-    console.log('robot-controller.launchOccasionPicks', mode, symbols)
+exports._launchPickOccasion = (wssClientID, symbols, mode) => {
+    console.log('robot-controller._launchPickOccasion', mode, symbols)
     let pad = new Launcher(
         5, 
         TFI.getList(symbols),//.slice(0,1), 
@@ -25,10 +25,7 @@ exports.launchOccasionPicks = (wssClientID, symbols, mode) => {
                 status: 'CALC-STARTED',
                 errorMsg: 'Mode:'+mode
             }) 
-        
-            //delete when in simulation mode
-            if (mode === 'SIMULATION') await SimOccasion.deleteMany({symbol: tfi.symbol}, function(err, result) {} ) 
-        
+                
             return new Promise(function(resolve, reject) {
                 try {  
                     robot.pickOccasions(tfi.symbol, mode)
@@ -49,6 +46,7 @@ exports.launchOccasionPicks = (wssClientID, symbols, mode) => {
             console.log(item.symbol, 'robot-controller.runOccasionPicks callbackFunction', mode)
             //store in database
             let occasionsSerialized = occasions.map(occasion => ({
+                mode: occasion.mode,
                 symbol: occasion.symbol,
                 run_date: occasion.run_date,
                 run_startOfPeriod: occasion.run_startOfPeriod,
@@ -58,7 +56,7 @@ exports.launchOccasionPicks = (wssClientID, symbols, mode) => {
             }))
             //insert
             //@@@..sim/real
-            if (true) SimOccasion.insertMany(occasionsSerialized, function (err, docs) {
+            if (true) Occasion.insertMany(occasionsSerialized, function (err, docs) {
                 if (err){ 
                     console.error(err);
                     TFIMetaDataCtrl.update(item.symbol, {
@@ -66,10 +64,10 @@ exports.launchOccasionPicks = (wssClientID, symbols, mode) => {
                         errorMsg: err.toString().substring(0,100)
                     })
                 } else {
-                    //console.log("Robot-controller. Multiple documents inserted to SimOccasion Collection", docs.length);
+                    //console.log("Robot-controller. Multiple documents inserted to Occasion Collection", docs.length);
                     TFIMetaDataCtrl.update( item.symbol, {
                         status: 'DONE',
-                        errorMsg: 'Occasions: '+JSON.stringify(occasions.length)
+                        errorMsg: 'Occasions: ['+mode+']'+JSON.stringify(occasions.length)
                     }) 
                 }
             })
@@ -92,32 +90,34 @@ exports.launchOccasionPicks = (wssClientID, symbols, mode) => {
     pad.run();   
 }
 
-//return simulation occasion picks (only for one symbol)
-exports.simulatePick = (req, res, next) => { 
-    console.log('simulatePick', req.params.symbol)
-    robot.pickOccasions(req.params.symbol, 'SIMULATION')
+//end point to return occasion picks (only for one symbol)
+exports.pickOccasion = (req, res, next) => { 
+    console.log('pickOccasion', req.params.symbol)
+    robot.pickOccasions(req.params.symbol, req.params.mode)
         .then(output => {
             res.status(200).json(output)
         })
         .catch (next)
 }
 
+//entry point to delete picks
 exports.deletePicks = (req, res, next) => { 
     console.log('deletePicks', req.params.symbols)
     let symbols = req.params.symbols.split(',').map(item => ({symbol: item}))
-    let query = { $or: symbols }
-    SimOccasion.deleteMany(query, function(err, result) {} )
-    res.status(200).json('Deleting pick...'+JSON.stringify(symbols))
+    let query = { $or: symbols, mode: req.params.mode }
+    Occasion.deleteMany(query, function(err, result) {} )
+    res.status(200).json('Deleting pick...mode='+req.params.mode+': '+JSON.stringify(symbols))
 }
 
-//entry point to launch simulation occasion picks
-exports.launchSimulatePick = async (req, res, next) => {
+//entry point to launch occasion picks
+exports.launchPickOccasion = async (req, res, next) => {
+    console.log('launchPickOccasion', req.params.symbols)
     let symbols = []
     if (req.params.symbols !== '*') {
         symbols = req.params.symbols.split(',') 
     }
-    this.launchOccasionPicks(null, symbols, 'SIMULATION')
-    res.status(200).json('simulatePick started for '+symbols)
+    this._launchPickOccasion(null, symbols, req.params.mode)
+    res.status(200).json('launchPickOccasion started for mode='+req.params.mode+': '+symbols)
 }
 
 //entry point to launch simulation buy based on simulated occasions
@@ -128,7 +128,7 @@ exports.launchSimulateBuy = async (req, res, next) => {
         symbols = req.params.symbols.split(',').map(item => ({symbol: item}))
         query = { $or: symbols }    
     }
-    let occasions = await SimOccasion.find(query).sort({symbol: 1})    
+    let occasions = await Occasion.find(query).sort({symbol: 1})    
     symbols = [...new Set( occasions.map(x => x.symbol))]  
 
     // res.status(200).json(symbols)
@@ -239,13 +239,13 @@ exports.launchSimulateSell = async (req, res, next) => {
 
 
 //---------------------------------------------------------
-exports.getSimOccasions = (req, res, next) => {
-    let query = {}
+exports.getOccasions = (req, res, next) => {
+    let query = { mode: req.params.mode }
     if (req.params.symbols !== '*') {
         symbols = req.params.symbols.split(',').map(item => ({symbol: item}))
-        query = { $or: symbols }
+        query = { $or: symbols, mode: req.params.mode }
     }
-    SimOccasion.find(query).sort({symbol: 1, run_date: 1}) 
+    Occasion.find(query).sort({symbol: 1, run_date: 1}) 
         .then(function (result) {
             res.status(200).json(result)
         })
@@ -253,10 +253,10 @@ exports.getSimOccasions = (req, res, next) => {
 }
 
 exports.exportSells = (req, res, next) => {
-    let query = {}
+    let query = { mode: req.params.mode }
     if (req.params.symbols !== '*') {
         symbols = req.params.symbols.split(',').map(item => ({symbol: item}))
-        query = { $or: symbols }
+        query = { $or: symbols, mode: req.params.mode }
     }
     SimSell.find(query).sort({symbol: 1, run_date: 1}) 
         .then(function (result) {

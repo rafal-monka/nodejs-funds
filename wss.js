@@ -70,14 +70,14 @@ console.log('closing', wssClientID)
                     CalculateStatsCtrl.calcStats(wssClientID, symbols)                     
                     break
 
-                case 'ROBOT-SIM-PICK-INIT':
+                case 'ROBOT-S-PICK-INIT':
                     // console.log('on-message.CALCSTAT-INIT')
-                    RobotCtrl.launchOccasionPicks(wssClientID, symbols, 'SIMULATION')                     
+                    RobotCtrl._launchPickOccasion(wssClientID, symbols, 'S') //SIMULATION                 
                     break
                     
-                case 'ROBOT-REAL-PICK-INIT':
+                case 'ROBOT-R-PICK-INIT':
                     // console.log('on-message.CALCSTAT-INIT')
-                    RobotCtrl.launchOccasionPicks(wssClientID, symbols, 'REAL')                     
+                    RobotCtrl._launchPickOccasion(wssClientID, symbols, 'R') //REAL                   
                     break                    
 
                 case 'TEST':
