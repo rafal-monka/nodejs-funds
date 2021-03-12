@@ -252,7 +252,7 @@ exports.getOccasions = (req, res, next) => {
         .catch (next) 
 }
 
-exports.exportSells = (req, res, next) => {
+exports.exportSimSells = (req, res, next) => {
     let query = { }
     if (req.params.symbols !== '*') {
         symbols = req.params.symbols.split(',').map(item => ({symbol: item}))
