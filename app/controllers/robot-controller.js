@@ -253,10 +253,10 @@ exports.getOccasions = (req, res, next) => {
 }
 
 exports.exportSells = (req, res, next) => {
-    let query = { mode: req.params.mode }
+    let query = { }
     if (req.params.symbols !== '*') {
         symbols = req.params.symbols.split(',').map(item => ({symbol: item}))
-        query = { $or: symbols, mode: req.params.mode }
+        query = { $or: symbols }
     }
     SimSell.find(query).sort({symbol: 1, run_date: 1}) 
         .then(function (result) {
