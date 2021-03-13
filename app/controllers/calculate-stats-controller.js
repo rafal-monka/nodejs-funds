@@ -15,6 +15,9 @@ exports.getMonthlyValues = (req, res, next) => {
     let minDate = new Date(req.params.date)
     let period = req.params.period.toUpperCase()
     let query = { $or: symbols, date: {$gte: minDate } }
+
+console.log(query)
+
     calcMonthlyValues(query, period)
         .then(output => {
             res.status(200).json(output)
@@ -27,7 +30,7 @@ function calcMonthlyValues(query, period) {
         TFIValues.find( query ) 
             .sort( {symbol: 1, date: 1})
             .then(function (result) {
-                //console.log(result.length) 
+                console.log(result.length) 
                 let arr = []
                 result.forEach(item => {
                     if (arr[item.symbol] === undefined) arr[item.symbol] = {symbol: item.symbol, data: []}
@@ -143,81 +146,35 @@ function calcMonthlyValues(query, period) {
                 })
                 // console.log(sumDataOut) 
                 
-                //varations with repetition
-                if (false) {
-                    let amountsArr = [0,10,20,30,40,50,60,70,80,90,100]
-                    let amount = Math.max(...amountsArr)
-                    let R = fundData.length
-                    
-                    let variationsArr = variationsWithRepetion(amountsArr, R);
-                    let varData = variationsArr.filter(v => amount === v.reduce((total, item) => total+item, 0))
-
-                    //pivot data
-                    let inputArr = []                
-                    fundData.forEach(fund => {
-                        fund.data.forEach(dat => {
-                            inputArr.push([
-                                fund.name, 
-                                dat[0],
-                                dat[1]
-                            ])
-                        })  
-                    })
-                    let pivotData = utils.createPivotTable(inputArr)
-
-                    //combine varations with pivot table
-                    let combinedArr = []
-                    varData.forEach((variation, index) => {
-                        let txt = 'V#'+variation.toString()
-                        combinedArr.push({
-                            name: txt,
-                            data: []
-                        })
-                        variation.forEach((var_amount, var_index) => {
-                            pivotData.pivotArrFilled[var_index].forEach(period => {
-                                combinedArr[combinedArr.length-1].data.push({
-                                    f: pivotData.uniqueX[var_index],
-                                    d: period.y,
-                                    val: period.v,
-                                    vr: var_amount
-                                })
-                            })
-                        })
-                    })
-
-                    //final result
-                    let resultArr = []
-                    combinedArr.forEach(variant => {
-                        resultArr.push({
-                            name: variant.name,
-                            sum: Math.round( variant.data.reduce((total, item) => total + item.val/100*item.vr, 0) * 100)/100,
-                            min: Math.round( variant.data.reduce((min, item) => Math.min(min, item.val/100*item.vr), 0) * 100)/100,
-                            max: Math.round( variant.data.reduce((max, item) => Math.max(max, item.val/100*item.vr), 0) * 100)/100,
-                        })
-                    })
-                }
 
                 //simulate earnings for portfolio
-                let portfolioConf = [
-                    {symbol: 'ALL14', amount:  10000},
-                    {symbol: 'ALL75', amount:  14000},
-                    {symbol: 'ARK01', amount:   2000},
-                    {symbol: 'ARK04', amount:  30000},
-                    {symbol: 'ARK27', amount: 100000},
-                    {symbol: 'ARK29', amount:  40000},
-                    {symbol: 'ARK33', amount:  30000},
-                    {symbol: 'ING07', amount:  10000},
-                    {symbol: 'ING17', amount:  10000},
-                    {symbol: 'ING65', amount:  70000},
-                    {symbol: 'ING71', amount:   9000},
-                    {symbol: 'ING76', amount:  70000},
-                    {symbol: 'ING91', amount:   9000},
-                    {symbol: 'SKR23', amount:  15000},
-                    {symbol: 'SKR36', amount:  39400},
-                    {symbol: 'UNI32', amount:  40000},                    
-                ]
                 let portfolioSimArr = [] 
-                if (true) fundData.forEach(fund => {
+                let portfolioConf = [
+                    {symbol: 'ARK11', amount: 1000},
+                    {symbol: 'ARK29', amount: 40000},
+                    {symbol: 'ARK04', amount: 30000},
+                    {symbol: 'ARK33', amount: 30000},                
+                    {symbol: 'ARK27', amount: 100000},
+                    {symbol: 'ARK01', amount: 1000},
+                    {symbol: 'SKR36', amount: 19500},                    
+                    {symbol: 'SKR54', amount: 19500},                    
+                    {symbol: 'SKR23', amount: 15000},
+                    {symbol: 'ALL14', amount: 6000},
+                    {symbol: 'ALL75', amount: 6000},
+                    {symbol: 'ALL75', amount: 4000},
+                    {symbol: 'ING17', amount: 6000},
+                    {symbol: 'ING17', amount: 4000},
+                    {symbol: 'ALL75', amount: 4000},
+                    {symbol: 'ING65', amount: 10000},
+                    {symbol: 'UNI32', amount: 15000},
+                    {symbol: 'ING04', amount: 27000},
+                    {symbol: 'ING07', amount: 10000},
+                    {symbol: 'ING76', amount: 50000},
+                    {symbol: 'ING65', amount: 1000},
+                    {symbol: 'UNI03', amount: 100},                                        
+                ]
+                //calculate portfolio changes
+                if (false) fundData.forEach(fund => {
                     let position = portfolioConf.find(ptf => ptf.symbol === fund.name)                    
                     fund.data.forEach(dat => {
                         portfolioSimArr.push([
@@ -229,7 +186,7 @@ function calcMonthlyValues(query, period) {
                     })  
                 })
 
-
+                console.log('fundData.length', fundData.length) 
                 resolve({
                     //resultArr: resultArr,
                     //combinedArr: combinedArr,
@@ -237,7 +194,7 @@ function calcMonthlyValues(query, period) {
                     //pivotData: pivotData,
                     chartData: fundData,
                     sumData: sumDataOut,
-                    portfolioSimArr: portfolioSimArr
+                    // portfolioSimArr: portfolioSimArr
                 })                          
             }).catch(e => {
                reject(e.toString())
@@ -262,7 +219,7 @@ exports.calcStat = async (wssClientID, symbol, resolve, reject) => {
 }
 
 
-exports.test = (req, res, next) => {
+exports.testAllocation = (req, res, next) => {
     let arr = [0,10,20,30,40,50,60,70,80,90,100]
     let amount = Math.max(...arr)
     let R = 4

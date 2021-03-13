@@ -161,14 +161,14 @@ exports.loadTFIValues = (req, res, next) => {
     let symbols = []
     if (req.params.symbols !== '*') {
         symbols = req.params.symbols.split(',') 
-        run(0, new Date(), symbols)
+        _launchLoadValues(0, new Date(), symbols)
         res.json('Loading started for '+symbols)
     } else {
         let query = {}
         TFIMetaData.find(query).then(function (result) {
             let symbols = result.map(res => res.symbol)
             res.status(200).json('Loading started for '+symbols) 
-            run(99999, new Date(), symbols)           
+            _launchLoadValues(99999, new Date(), symbols)           
         })
     }          
 }
@@ -264,17 +264,9 @@ exports.getValues = (req, res, next) => {
         .catch (next) 
 }
 
-exports.loadValues = (wssClientID, symbols) => { 
-    // symbolsMoney = symbols.filter(item=>item.indexOf('TFI')>-1)
-    // symbolsBankier = symbols.filter(item=>item.indexOf('BANKIER')>-1)
-    // console.log('symbolsMoney', symbolsMoney)
-    // console.log('symbolsBankier', symbolsBankier)
-
-    run(wssClientID, new Date(), symbols)
-
-    //moneyValueLoader.run(wssClientID, new Date(), symbolsMoney)
-    //bankierLoader.run(wssClientID, new Date(), symbolsBankier)
-}
+// exports.loadValues = (wssClientID, symbols) => { 
+//     launchLoadValues(wssClientID, new Date(), symbols)
+// }
 
 exports.notifyClient = (wssClientID, event, symbol, data) => {
     //console.log(new Date(), 'notifyClient', event, symbol, data.status)
@@ -287,9 +279,9 @@ exports.notifyClient = (wssClientID, event, symbol, data) => {
 }
 
 
-run = (wssClientID, currentDate, symbols) => {
+exports._launchLoadValues = (wssClientID, currentDate, symbols) => {
     let count = [0,0]
-    console.log(new Date(), 'tfi-controller.run', symbols)    
+    console.log(new Date(), 'tfi-controller._launchLoadValues', symbols)    
     let timestampStart
     this.currentDate = currentDate
     let pad = new Launcher(
@@ -326,7 +318,7 @@ run = (wssClientID, currentDate, symbols) => {
         //finalCallBack
         (param) => {         
             let timestampEnd = new Date()
-            console.log('tfi-controller run final', timestampStart, timestampEnd, param.length) 
+            console.log('tfi-controller _launchLoadValues final', timestampStart, timestampEnd, param.length) 
             if (true) email.sendEmail(' TFI values loaded '+new Date(), 
                         '<div><pre>timeStart: '+timestampStart+', timeEnd:'+timestampEnd+', duration:'+(timestampEnd-timestampStart)/1000+'<br>'+JSON.stringify(count)+'</pre></div>'
                            
@@ -338,10 +330,50 @@ run = (wssClientID, currentDate, symbols) => {
 }
 
 
+exports._launchTag = (wssClientID, symbols, tag) => {
+    console.log(new Date(), 'tfi-controller._launchTag', symbols)
+    let pad = new Launcher(
+        5, 
+        symbols,
+        //callFunction,
+        (item)=>{ 
+            //console.log(new Date(), 'call item:', item.symbol)
+            return new Promise(function(resolve, reject) {
+                resolve(item)
+            })
+        },
+        //callbackFunction,
+        (item, value)=>{ 
+
+            this.update(item, {                        
+                tags: tag.toUpperCase(),
+                errorMsg: 'tagged '+tag,
+                class: 'A',
+                aolurl: '...'
+            })
+        },        
+        //catchFunction
+        (error, item)=> {
+            console.log('Launcher catchFunction _launchTag', error.toString().substring(0,100), item)
+            this.update(item, {                        
+                status: 'ERROR',
+                errorMsg: error.toString().substring(0,100)
+            })
+        },
+        //finalCallBack
+        (param) => {         
+            console.log('tfi-controller _launchTag final') 
+        } 
+    );
+    timestampStart = new Date()
+    pad.run();    
+}
+
+
 
 
 //--------------------------------temp
-exports.tempAddFieldSource = () => {
+exports.tempAddFieldSourceOLD = () => {
     console.log('tempAddFieldSource')
     TFIMetaData.updateMany( {} ,
         { $set: { source: 'MONEY'} },
@@ -353,7 +385,7 @@ exports.tempAddFieldSource = () => {
 }
 
 //--------------------------------old
-exports.calcLRURL = async (req, res, next) => {  
+exports.calcLRURLOLD = async (req, res, next) => {  
     TFIValues
         .find({ symbol: req.params.symbol }) 
         .then(function (result) {

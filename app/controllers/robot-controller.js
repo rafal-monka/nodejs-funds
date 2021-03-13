@@ -4,21 +4,31 @@ const jsonexport = require('jsonexport')
 const Launcher = require("./../launcher.js")
 const TFI = require('./../../config/TFI')
 const robot = require("./../robot.js")
+
+const dicts = require('../models/dicts-model')
+
 const Occasion = require('../models/occasion-model')
 const SimBuy = require('./../models/sim-buy-model')
 const SimSell = require('./../models/sim-sell-model')
+const SimParamsConf = require('./../models/sim-params-conf-model')
 const TFIMetaDataCtrl = require('./tfi-controller')
+const { json } = require('express')
 
 
-// const CONST_SIMULATE = '#SIMULATE'
+const EXCLUDE_SYMBOLS = ['SUP14', 'SUP08', 'KAH32', 'SUP05', 'QRS32', 'CAB64', 'ALL91', 
+                         'MWIG40TR','PCS55','SWIG80','SWIG80TR','WIG','GAMES','WIG-INFO']
 
 exports._launchPickOccasion = (wssClientID, symbols, mode) => {
     console.log('robot-controller._launchPickOccasion', mode, symbols)
+
+    symbols = TFI.getList(symbols)
+    symbols = symbols.filter(item => EXCLUDE_SYMBOLS.indexOf(item.symbol) === -1)    
+//console.log(symbols)
+//    return
     let pad = new Launcher(
         5, 
-        TFI.getList(symbols),//.slice(0,1), 
+        symbols,//.slice(0,1), 
         //callFunction,
-        //---###OLD: callFunctionSimPick,
         async (tfi) => {
             console.log(tfi.symbol, 'robot-controller.runOccasionPicks callFunction', mode)
             await TFIMetaDataCtrl.update(tfi.symbol, {
@@ -43,7 +53,7 @@ exports._launchPickOccasion = (wssClientID, symbols, mode) => {
         },
         //callbackFunction,
         (item, occasions)=> {
-            console.log(item.symbol, 'robot-controller.runOccasionPicks callbackFunction', mode)
+            console.log(item.symbol, 'robot-controller.runOccasionPicks callbackFunction', mode, occasions.length)
             //store in database
             let occasionsSerialized = occasions.map(occasion => ({
                 mode: occasion.mode,
@@ -55,7 +65,6 @@ exports._launchPickOccasion = (wssClientID, symbols, mode) => {
                 finding: JSON.stringify(occasion.finding)
             }))
             //insert
-            //@@@..sim/real
             if (true) Occasion.insertMany(occasionsSerialized, function (err, docs) {
                 if (err){ 
                     console.error(err);
@@ -152,19 +161,19 @@ exports.launchSimulateBuy = async (req, res, next) => {
         },
         //callbackFunction,
         (item, buys)=> {
-            console.log('simulateBuy Launcher callbackFunction', item, buys.length)
+            console.log(item, 'simulateBuy Launcher callbackFunction', buys.length)
             //insert
             if (true) SimBuy.insertMany(buys, function (err, docs) {
                 if (err){ 
                     console.error(err);                    
                 } else {
-                    console.log("Robot-controller. SimBuy.insertMany", docs.length);
+                    console.log(item, "Robot-controller. SimBuy.insertMany", docs.length);
                 }
             })
         },
         //catchFunction
         (error, item)=> {
-            console.log('simulateBuy Launcher catchFunction', error, item)
+            console.log(item, 'simulateBuy Launcher catchFunction', error)
         },
         //finalCallBack
         (param) => {         
@@ -193,7 +202,7 @@ exports.launchSimulateSell = async (req, res, next) => {
         symbols = req.params.symbols.split(',').map(item => ({symbol: item}))
         query = { $or: symbols }    
     }
-    let buys = await SimBuy.find(query).sort({symbol: 1})    
+    let buys = await SimBuy.find(query)//.sort({symbol: 1})    
     symbols = [...new Set( buys.map(x => x.symbol))] 
 
     let pad = new Launcher(
@@ -214,19 +223,19 @@ exports.launchSimulateSell = async (req, res, next) => {
         },
         //callbackFunction,
         (item, sells)=> {
-            console.log('simulateSell Launcher callbackFunction', item, sells.length)
+            console.log(item, 'simulateSell Launcher callbackFunction', sells.length)
             //insert
             if (true) SimSell.insertMany(sells, function (err, docs) {
                 if (err){ 
                     console.error(err);                    
                 } else {
-                    console.log("Robot-controller. SimSell.insertMany", docs.length);
+                    console.log(item, "Robot-controller. SimSell.insertMany", docs.length);
                 }
             })
         },
         //catchFunction
         (error, item)=> {
-            console.log('simulateSell Launcher catchFunction', error, item)
+            console.log(item, 'simulateSell Launcher catchFunction', error)
         },
         //finalCallBack
         (param) => {         
@@ -311,3 +320,26 @@ exports.exportSimSells = (req, res, next) => {
         .catch (next)
 }
 
+
+//temp
+exports.saveSimParamsConf = (req, res, next) => {
+    //let paramsConf = await 
+    let s = new SimParamsConf({
+        name: "Params",
+        paramsPick: {
+            long_term_trend: [5.0, 10.0, 15.0],
+            period_length: [10, 20, 30, 40, 50, 60], //how deep look into the past before current (run) date
+            potential_full: [5.0, 6.0, 7.0, 10.0, 15.0], //minimum difference between max value and min value
+            potential_level: [0.5, 0.6, 0.7, 0.8, 0.9], //current value potentially can grow % of full potential
+            date_min_before: [2, 3, 5, 7, 10] //minimum value date must occur N calendar days before current (run) date  
+        },
+        paramsBuy: {
+            buy_days_delay: [2, 3, 4, 5, 6, 7]
+        },
+        paramsSell: {
+            sell_days_delay: [3, 4, 5, 6, 7, 8],
+            sell_threshold: [-1, 4.0, 6.0, 10.0, 15.0, 20.0] 
+        }
+    })
+    s.save()
+}

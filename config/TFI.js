@@ -4425,8 +4425,13 @@ const TFIs = [
 
 exports.getList = (symbols) => {
     //console.log('getList.symbols', symbols)
-    let ret = TFIs.filter(tfi => symbols.findIndex(symbol => tfi.symbol === symbol) >-1)
-                  .sort((a,b) => a.name.toUpperCase() > b.name.toUpperCase() ? 1: -1)
+	let ret
+	if (symbols === '*') {
+		ret = TFIs
+	} else {
+		ret = TFIs.filter(tfi => symbols.findIndex(symbol => tfi.symbol === symbol) >-1)		
+	}
+	ret = ret.sort((a,b) => a.name.toUpperCase() > b.name.toUpperCase() ? 1: -1)
     //ret = TFIs.filter(tfi => ['TFI6771','TFI8172','TFI5438','TFI1','TFI112','TFI4562','TFI66','TFI4635'].indexOf(tfi.symbol) > -1)
     //ret = TFIs.filter(tfi => tfi.name.indexOf('Santander') > -1)
     //console.log('getList', ret)

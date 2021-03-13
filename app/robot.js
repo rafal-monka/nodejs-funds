@@ -2,6 +2,8 @@ const TFIValues = require('./models/tfi-values-model')
 // const TFIMetaData = require('./models/tfi-metadata-model')
 const Occasion = require('./models/occasion-model')
 const SimBuy = require('./models/sim-buy-model')
+const SimParamsConf = require('./models/sim-params-conf-model')
+
 const linReg = require('./linear-regression.js')
 
 // const CONST_SIMULATE = '#SIMULATE'
@@ -11,37 +13,54 @@ const CONST_DAY = 1000*60*60*24
 const CONST_YEAR_DAYS = 365
 const CONST_LONG_TERM_TREND_DAYS = 1*CONST_YEAR_DAYS
 
-const paramsPick = {
-    long_term_trend: [10.0],
-    period_length: [30, /*60*/], //how deep look into the past before current (run) date
-    potential_full: [7.0, 10.0], //minimum difference between max value and min value
-    potential_level: [0.7 /*0.8*/], //current value potentially can grow % of full potential
-    date_min_before: [2, 3, 5, 7, 10] //minimum value date must occur N calendar days before current (run) date  
-}
+// const paramsPick = {
+//     long_term_trend: [5.0, 10.0, 15.0],
+//     period_length: [10, 20, 30, 40, 50, 60], //how deep look into the past before current (run) date
+//     potential_full: [5.0, 6.0, 7.0, 10.0, 15.0], //minimum difference between max value and min value
+//     potential_level: [0.5, 0.6, 0.7, 0.8, 0.9], //current value potentially can grow % of full potential
+//     date_min_before: [2, 3, 5, 7, 10] //minimum value date must occur N calendar days before current (run) date  
+// }
 
-const paramsBuy = {
-    buy_days_delay: [2, 3]
-}
+// const paramsBuy = {
+//     buy_days_delay: [2, 3, 4, 5, 6, 7]
+// }
 
-const paramsSell = {
-    sell_days_delay: [3, 4, 5],
-    sell_threshold: [-1, 6.0] //<-----------4.0???
-}
+// const paramsSell = {
+//     sell_days_delay: [3, 4, 5, 6, 7, 8],
+//     sell_threshold: [-1, 4.0, 6.0, 10.0, 15.0, 20.0] 
+// }
+
+// const paramsConf = {
+//     paramsPick: {
+//         long_term_trend: [5.0, 10.0, 15.0],
+//         period_length: [10, 20, 30, 40, 50, 60], //how deep look into the past before current (run) date
+//         potential_full: [5.0, 6.0, 7.0, 10.0, 15.0], //minimum difference between max value and min value
+//         potential_level: [0.5, 0.6, 0.7, 0.8, 0.9], //current value potentially can grow % of full potential
+//         date_min_before: [2, 3, 5, 7, 10] //minimum value date must occur N calendar days before current (run) date  
+//     },
+//     paramsBuy: {
+//         buy_days_delay: [2, 3, 4, 5, 6, 7]
+//     },
+//     paramsSell: {
+//         sell_days_delay: [3, 4, 5, 6, 7, 8],
+//         sell_threshold: [-1, 4.0, 6.0, 10.0, 15.0, 20.0] 
+//     }
+// }
 
 //------------------------------------------------OCCASION (PICKS)
 async function processOccasions(symbol, values, mode, minTFIValuesDate) {
     let runs = []
     let runDates = []
 
-    //return values
-
+    let paramsConf = await SimParamsConf.find()
+// console.log('processOccasions, paramsConf=', paramsConf[0])
     if (mode === 'S') { //S=SIMULATION
         runDates = values.filter(value => value.date >= CONST_SIMULATE_MIN_RUN_DATE.getTime()).map(value => value.date2)        
-        paramsPick.long_term_trend.forEach(long_term_trend => {
-            paramsPick.period_length.forEach(period_length => {
-                paramsPick.potential_full.forEach(potential_full => {
-                    paramsPick.potential_level.forEach(potential_level => {
-                        paramsPick.date_min_before.forEach(date_min_before => {
+        paramsConf[0].paramsPick.long_term_trend.forEach(long_term_trend => {
+            paramsConf[0].paramsPick.period_length.forEach(period_length => {
+                paramsConf[0].paramsPick.potential_full.forEach(potential_full => {
+                    paramsConf[0].paramsPick.potential_level.forEach(potential_level => {
+                        paramsConf[0].paramsPick.date_min_before.forEach(date_min_before => {
                             runs.push({
                                 long_term_trend: long_term_trend,
                                 period_length: period_length,
@@ -181,8 +200,10 @@ function findOccasion(startOfPeriod, date, params, values) {
     }
 }
 
-exports.pickOccasions = (symbol, mode) => {
-    let maxPeriod = Math.max(...paramsPick.period_length)
+exports.pickOccasions = async (symbol, mode) => {
+    let paramsConf = await SimParamsConf.find({})
+// console.log('pickOccasions, paramsConf=', JSON.stringify(paramsConf[0]))
+    let maxPeriod = Math.max(...paramsConf[0].paramsPick.period_length)
     let today = new Date()
     today.setHours(0, 0, 0, 0)
     let minTFIValuesDate = new Date(new Date(today.toISOString().substring(0,10)).getTime() - CONST_DAY*(maxPeriod+CONST_LONG_TERM_TREND_DAYS))
@@ -190,7 +211,6 @@ exports.pickOccasions = (symbol, mode) => {
         symbol: symbol,
         date: {$gte: minTFIValuesDate } 
     }
-
 
     return new Promise(function(resolve, reject) {
         TFIValues
@@ -215,9 +235,11 @@ exports.pickOccasions = (symbol, mode) => {
 
 
 //------------------------------------------------BUY
-function processBuys(occasions, values) {
+async function processBuys(occasions, values) {
     let runs = []
-    paramsBuy.buy_days_delay.forEach(buy_days_delay => {  
+    let paramsConf = await SimParamsConf.find()
+    //console.log('processBuys, paramsConf=', paramsConf[0])
+    paramsConf[0].paramsBuy.buy_days_delay.forEach(buy_days_delay => {  
         runs.push({
             buy_days_delay: buy_days_delay    
         })
@@ -296,10 +318,12 @@ exports.simulateBuys = (symbol) => {
 
 
 //------------------------------------------------SELL
-function processSells(buys, values) {
+async function processSells(buys, values) {
     let runs = []
-    paramsSell.sell_days_delay.forEach(sell_days_delay => { 
-        paramsSell.sell_threshold.forEach(sell_threshold => {  
+    let paramsConf = await SimParamsConf.find()
+    // console.log(paramsConf)
+    paramsConf[0].paramsSell.sell_days_delay.forEach(sell_days_delay => { 
+        paramsConf[0].paramsSell.sell_threshold.forEach(sell_threshold => {  
             runs.push({
                 sell_days_delay: sell_days_delay,
                 sell_threshold: sell_threshold   
@@ -309,7 +333,7 @@ function processSells(buys, values) {
 
     let sells = []
     runs.forEach(params => {
-        buys.forEach(buy => {
+        buys.forEach(buy => {            
             let sell = makeSell(params, buy, values)
             sells.push(sell)
         })
@@ -380,7 +404,7 @@ exports.simulateSells = (symbol) => {
     return new Promise(function(resolve, reject) {
         try {
             SimBuy.find({symbol: symbol})
-                       .sort({symbol: 1, run_date: 1, initDate: 1}) 
+                       //###!!!MongoDB Memory.sort({symbol: 1, run_date: 1, initDate: 1}) 
                        .then(function (buys) {
                             let minTFIValuesDate = buys.reduce((min, value) => Math.min(min, new Date(value.initDate)) || min, new Date()  )
                             //console.log('minTFIValuesDate', new Date(minTFIValuesDate))

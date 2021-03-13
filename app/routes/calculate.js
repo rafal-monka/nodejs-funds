@@ -4,7 +4,7 @@ const CalculateStatsCtrl = require('../controllers/calculate-stats-controller.js
 
 router.get('/monthly/values/:symbols/:date/:period', CalculateStatsCtrl.getMonthlyValues)
 
-router.get('/test', CalculateStatsCtrl.test)
+router.get('/test', CalculateStatsCtrl.testAllocation)
 
 
 module.exports = router

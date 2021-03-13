@@ -49,7 +49,7 @@ console.log('closing', wssClientID)
         })
             
         ws.on('message', function message(obj) {
-// console.log('on-message', obj)
+            // console.log('on-message', obj)
             let msg = JSON.parse(obj)
             let response
             let symbols = msg.value
@@ -57,7 +57,8 @@ console.log('closing', wssClientID)
 
                 case 'LOADVALUE-INIT':
                     // console.log('on-message.LOADVALUE-STARTED')
-                    TFIMetaDataCtrl.loadValues(wssClientID, symbols) 
+                    //TFIMetaDataCtrl.loadValues(wssClientID, symbols)
+                    TFIMetaDataCtrl._launchLoadValues(wssClientID, new Date(), symbols) 
                     break
 
                 case 'CALCLR-INIT':
@@ -79,6 +80,12 @@ console.log('closing', wssClientID)
                     // console.log('on-message.CALCSTAT-INIT')
                     RobotCtrl._launchPickOccasion(wssClientID, symbols, 'R') //REAL                   
                     break                    
+
+                case 'TAG-INIT':
+                    // console.log('on-message.TAG-INIT', symbols)
+                    TFIMetaDataCtrl._launchTag(wssClientID, symbols.symbols, symbols.tag)                   
+                    break 
+                    
 
                 case 'TEST':
                     let msg = JSON.parse(obj)

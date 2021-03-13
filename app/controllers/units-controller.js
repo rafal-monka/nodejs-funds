@@ -1,10 +1,12 @@
 const utils = require("../utils.js")
 const UnitsPurchaseCtrl = require('./units/purchase')
 const UnitsRedemptionCtrl = require('./units/redemption')
+const LineOfDefenceCtrl = require('./line-of-defence-controller')
 const UnitPurchase = require('./../models/unit-purchase-model')
 const UnitRedemption = require('./../models/unit-redemption-model')
 const UnitRegister = require('./../models/unit-register-model')
 const TFIValues = require('./../models/tfi-values-model')
+const TFIMetaData = require('./../models/tfi-metadata-model')
 
 //internal function to register new purchase
 async function _purchase(purchase) {
@@ -138,18 +140,31 @@ exports.getRegister = async (req, res, next) => {
         toDate: {$gt: onDate}
     })
 
+    //unique symbols
     let unique_registers = [...new Set(registers.map(reg => reg.symbol))].sort((a,b)=>a > b ? 1 : -1)
-    let symbols = unique_registers.map(item => {return {symbol: item}})
+    let query_symbols = unique_registers.map(item => {return {symbol: item}})
+
+    //add class info (A, B, C) to unique_registers beside symbol
+    let metadata = await TFIMetaData.find({$or: query_symbols})
+    unique_registers = unique_registers.map(symbol => {
+        let tfi = metadata.find(item => item.symbol === symbol)
+        return {
+          symbol: tfi.symbol,
+          name: tfi.name,
+          type: tfi.type,
+          fundClass: tfi.class
+        }
+    })
 
     try {
         let groupedArr = []
         let chartSeries = []
 
         let minDateForAll = registers.reduce((minDate, reg) => Math.min(minDate, reg.date), new Date())
-        let valuesAll = await TFIValues.find({$or: symbols, date: {$gte: new Date(minDateForAll), $lte: new Date(onDate)}}).sort({date: 1})
+        let valuesAll = await TFIValues.find({$or: query_symbols, date: {$gte: new Date(minDateForAll), $lte: new Date(onDate)}}).sort({date: 1})
 
         for (let ur=0; ur<unique_registers.length; ur++) {
-            let symbol = unique_registers[ur]
+            let symbol = unique_registers[ur].symbol
             let register = registers.filter(register => register.symbol === symbol)        
             //let minDate = register.reduce((minDate, reg) => Math.min(minDate, reg.date), new Date())
  
@@ -164,6 +179,7 @@ exports.getRegister = async (req, res, next) => {
                     if (ok===false) throw Error('Error between prices '+(new Date(reg.date))+' '+symbol+' '+reg.price+'<>'+value.value)
                     return {
                         symbol: symbol,
+                        fundClass: unique_registers[ur].fundClass,
                         date: value.date,
                         value: value.value,
                         capital: Math.round( reg.units*reg.price *100)/100,
@@ -184,10 +200,11 @@ exports.getRegister = async (req, res, next) => {
                     his.value
                 ])
                 chart = {
-                    name: symbol,
+                    name: symbol+' '+unique_registers[ur].name,
+                    fundClass: unique_registers[ur].fundClass,
                     marker: {enabled: false, symbol: "circle"},
                     data: chartData,
-                    negativeColor:' red',
+                    //negativeColor:' red',
                     value: reg.units * reg_values[reg_values.length-1][1],
                     units: reg.units
                 }
@@ -238,6 +255,7 @@ exports.getRegister = async (req, res, next) => {
                 })
                 groupedArr.push({
                     symbol: inv.symbol,
+                    fundClass: unique_registers[ur].fundClass,
                     date: '9999-12-31',
                     value: 0.0,
                     interests: 0.0,
@@ -248,19 +266,23 @@ exports.getRegister = async (req, res, next) => {
                     valn: inv.history[inv.history.length-1].valn
                 })
             })
-
-            
-
             //console.log(symbol, 'invs', invs.length)                    
         }
+
+        //line od defence
+        let lineOfDefence = LineOfDefenceCtrl.getArr(valuesAll, unique_registers)
+
+        //return result 
         res.json({
             status: 'OK',
             unique_registers: unique_registers,
+            metadata: metadata,
             registers: registers,
             onDate: onDate,
             period: period,
             chartSeries: chartSeries,
             groupedArr: groupedArr,
+            lineOfDefence: lineOfDefence
             //minDate: new Date(minDate)
         })
 
