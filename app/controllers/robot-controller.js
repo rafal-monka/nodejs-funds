@@ -1,32 +1,31 @@
 const fs = require('fs')
 const jsonexport = require('jsonexport')
+const email = require("./../email")
 
 const Launcher = require("./../launcher.js")
 const TFI = require('./../../config/TFI')
 const robot = require("./../robot.js")
 
-const dicts = require('../models/dicts-model')
-
 const Occasion = require('../models/occasion-model')
 const SimBuy = require('./../models/sim-buy-model')
 const SimSell = require('./../models/sim-sell-model')
-const SimParamsConf = require('./../models/sim-params-conf-model')
+const OccasionParamsConf = require('../models/occasion-params-conf-model')
 const TFIMetaDataCtrl = require('./tfi-controller')
 const { json } = require('express')
 
 
-const EXCLUDE_SYMBOLS = ['SUP14', 'SUP08', 'KAH32', 'SUP05', 'QRS32', 'CAB64', 'ALL91', 
-                         'MWIG40TR','PCS55','SWIG80','SWIG80TR','WIG','GAMES','WIG-INFO']
+const EXCLUDE_SYMBOLS = ['SUP14', 'SUP08', 'SUP19', 'SUP05', 'KAH32', 'QRS32', 'CAB64', 'ALL91', 
+                         'MWIG40TR','PCS55','SWIG80','SWIG80TR','WIG.GAMES','WIG-INFO','WIG-TELKOM','WIG20','WIGTECH','MWIG40']
 
-exports._launchPickOccasion = (wssClientID, symbols, mode) => {
+//occasion picker launcher                          
+exports._launchPickOccasion = (wssClientID, symbols, mode, req) => {
     console.log('robot-controller._launchPickOccasion', mode, symbols)
 
     symbols = TFI.getList(symbols)
     symbols = symbols.filter(item => EXCLUDE_SYMBOLS.indexOf(item.symbol) === -1)    
-//console.log(symbols)
-//    return
+
     let pad = new Launcher(
-        5, 
+        10, 
         symbols,//.slice(0,1), 
         //callFunction,
         async (tfi) => {
@@ -65,23 +64,29 @@ exports._launchPickOccasion = (wssClientID, symbols, mode) => {
                 finding: JSON.stringify(occasion.finding)
             }))
             //insert
-            if (true) Occasion.insertMany(occasionsSerialized, function (err, docs) {
-                if (err){ 
-                    console.error(err);
-                    TFIMetaDataCtrl.update(item.symbol, {
-                        status: 'ERROR',
-                        errorMsg: err.toString().substring(0,100)
-                    })
-                } else {
-                    //console.log("Robot-controller. Multiple documents inserted to Occasion Collection", docs.length);
-                    TFIMetaDataCtrl.update( item.symbol, {
-                        status: 'DONE',
-                        errorMsg: 'Occasions: ['+mode+']'+JSON.stringify(occasions.length)
-                    }) 
-                }
-            })
-
-            return true
+            if (occasionsSerialized.length > 0) {
+                Occasion.insertMany(occasionsSerialized, function (err, docs) {
+                    if (err){ 
+                        console.error(err);
+                        TFIMetaDataCtrl.update(item.symbol, {
+                            status: 'ERROR',
+                            errorMsg: err.toString().substring(0,100)
+                        })
+                    } else {
+                        //console.log("Robot-controller. Multiple documents inserted to Occasion Collection", docs.length);
+                        TFIMetaDataCtrl.update( item.symbol, {
+                            status: 'DONE',
+                            errorMsg: 'Occasions: ['+mode+']'+JSON.stringify(occasions.length)
+                        }) 
+                    }
+                }) 
+            } else {
+                TFIMetaDataCtrl.update( item.symbol, {
+                    status: 'DONE',
+                    errorMsg: 'No ocasions'
+                })
+            }
+            return occasionsSerialized.length
         },
         //catchFunction
         (error, item)=> {
@@ -92,8 +97,14 @@ exports._launchPickOccasion = (wssClientID, symbols, mode) => {
             })
         },
         //finalCallBack
-        (param) => {         
-            console.log('runStats final')                                                         
+        (result) => {         
+            console.log('_launchPickOccasion final') 
+            //console.log(result)
+            if (mode === 'R' && req !== null) {
+                email.sendEmail(' Funds (Occasions) '+new Date(),                             
+                                '<a href="'+req.protocol + '://' + req.get('host')+'/occasion/preview/R/*">Show occasions panel</a>'
+                                +'<div><pre>'+JSON.stringify(result.filter(f => f.output > 0).map(f => ({ symbol: f.item.name, count: f.output}) ), ' ', 2)+'</pre></div>')
+            }                                                        
         } 
     );
     pad.run();   
@@ -121,11 +132,11 @@ exports.deletePicks = (req, res, next) => {
 //entry point to launch occasion picks
 exports.launchPickOccasion = async (req, res, next) => {
     console.log('launchPickOccasion', req.params.symbols)
-    let symbols = []
-    if (req.params.symbols !== '*') {
+    let symbols = req.params.symbols
+    if (symbols !== '*') {
         symbols = req.params.symbols.split(',') 
     }
-    this._launchPickOccasion(null, symbols, req.params.mode)
+    this._launchPickOccasion(null, symbols, req.params.mode, req)
     res.status(200).json('launchPickOccasion started for mode='+req.params.mode+': '+symbols)
 }
 
@@ -225,13 +236,17 @@ exports.launchSimulateSell = async (req, res, next) => {
         (item, sells)=> {
             console.log(item, 'simulateSell Launcher callbackFunction', sells.length)
             //insert
-            if (true) SimSell.insertMany(sells, function (err, docs) {
-                if (err){ 
-                    console.error(err);                    
-                } else {
-                    console.log(item, "Robot-controller. SimSell.insertMany", docs.length);
-                }
-            })
+            try {
+                if (true) SimSell.insertMany(sells, function (err, docs) {
+                    if (err){ 
+                        console.error('Error while SimSell.insertMany', item, err);                    
+                    } else {
+                        console.log(item, "Robot-controller. SimSell.insertMany", docs.length);
+                    }
+                })
+            } catch (e) {
+                console.error('Exception in SimSell.insertMany', item, e.toString());  
+            }
         },
         //catchFunction
         (error, item)=> {
@@ -261,14 +276,148 @@ exports.getOccasions = (req, res, next) => {
         .catch (next) 
 }
 
-exports.exportSimSells = (req, res, next) => {
-    let query = { }
-    if (req.params.symbols !== '*') {
-        symbols = req.params.symbols.split(',').map(item => ({symbol: item}))
-        query = { $or: symbols }
-    }
-    SimSell.find(query).sort({symbol: 1, run_date: 1}) 
+exports.getOccasionsParamsConf = (req, res, next) => {
+    OccasionParamsConf.find({name: req.params.mode})
         .then(function (result) {
+            res.status(200).json(result)
+        })
+        .catch (next) 
+}
+
+exports.exportSimSells = (req, res, next) => {
+    // let query = { }
+    // if (req.params.symbols !== '*') {
+    //     symbols = req.params.symbols.split(',').map(item => ({symbol: item}))
+    //     query = { $or: symbols }
+    // }
+
+    let symbols = [
+        "AIG03",
+        "AIG07",
+        "AIG11",
+        "AIG12",
+        "AIG19",
+        "AIG25",
+        "AIG31",
+        "AIG34",
+        "ALL14",
+        "ALL28",
+        "ALL41",
+        "ALL57",
+        "ALL58",
+        "ALL73",
+        "ALL75",
+        "ALL90",
+        "ALL93",
+        "AMU20",
+        "ARK24",
+        "ARK42",
+        "ARK55",
+        "ARK60",
+        "AXA02",
+        "AXA07",
+        "AXA12",
+        "AXA19",
+        "AXA20",
+        "AXA23",
+        "BPS01",
+        "CAB25",
+        "CAB35",
+        "CAB41",
+        "CAB58",
+        "CAS09",
+        "CAS16",
+        "CUN03",
+        "CUN10",
+        "DWS03",
+        "DWS13",
+        "DWS23",
+        "DWS29",
+        "DWS31",
+        "DWS33",
+        "FOR01",
+        "FOR07",
+        "FOR16",
+        "ING17",
+        "ING37",
+        "ING45",
+        "ING77",
+        "ING78",
+        "INV24",
+        "INV25",
+        "INV34",
+        "INV36",
+        "INV42",
+        "IPO145",
+        "IPO49B",
+        "KAH02",
+        "KAH14",
+        "KAH15",
+        "KAH23",
+        "KRB33",
+        "MIL01",
+        "MIL29",
+        "NOB03",
+        "NOB08",
+        "NOB28",
+        "NOB29",
+        "NOB30",
+        "OPE12",
+        "OPN05",
+        "PCS15",
+        "PCS33",
+        "PCS35",
+        "PCS57",
+        "PCS58",
+        "PCS60",
+        "PCS61",
+        "PCS85",
+        "PIO19",
+        "PIO25",
+        "PIO30",
+        "PIO32",
+        "PIO52",
+        "PIO79",
+        "PZU01",
+        "PZU10",
+        "PZU27",
+        "PZU66",
+        "PZU69",
+        "PZU70",
+        "QRS01",
+        "QRS06",
+        "QRS20",
+        "SEB22",
+        "SKR01",
+        "SKR110",
+        "SKR36",
+        "SKR54",
+        "SKR66",
+        "SKR71",
+        "SKR78",
+        "SUP11",
+        "SUP19",
+        "UNI04",
+        "UNI19",
+        "UNI20",
+        "UNI34",
+        "UNI66",
+        "UNI67",
+        "UNI68",
+        "UNI69"
+        ]
+
+    let pad = new Launcher(
+        5, 
+        symbols,//.slice(0,3), 
+        //callFunction,
+        (symbol) => {
+            console.log(symbol, 'exportSimSells callFunction') 
+            return SimSell.find({symbol: symbol})  
+        },
+        //callbackFunction,
+        (item, result)=> {
+            console.log(item, 'exportSimSells callbackFunction')
             let output = result.map(res => {
                 let occasionParams = JSON.parse(JSON.parse(res.occasionParams))
                 let occasionStat = JSON.parse(res.occasionStat)
@@ -309,23 +458,48 @@ exports.exportSimSells = (req, res, next) => {
             })
 
             //https://github.com/kaue/jsonexport
-            jsonexport(output, {rowDelimiter: ';'}, function(err, csv){
+            jsonexport(output, {includeHeaders: true, rowDelimiter: ';'}, function(err, csv){
                 if (err) res.status(200).json(err)
                 // console.log(csv);
-                fs.writeFileSync('download/data.csv', csv);
-                res.status(200).json(output)
+                fs.writeFileSync('download/data-'+item+'.csv', csv);                
             });
-            
-        })
-        .catch (next)
+        },
+        //catchFunction
+        (error, item)=> {
+            console.log(item, 'Launcher catchFunction', error)            
+        },
+        //finalCallBack
+        (param) => {         
+            console.log('exportSimSells final')                                                         
+        } 
+    );
+    pad.run();
+    res.status(200).json('Look for files download/data-XXX.csv')
 }
 
 
 //temp
-exports.saveSimParamsConf = (req, res, next) => {
-    //let paramsConf = await 
-    let s = new SimParamsConf({
-        name: "Params",
+exports.testQuery = async (req, res, next) => {
+    //occasions
+    //let records1 =  await Occasion.distinct("symbol")//find().map(occasion => occasion.symbol)
+    //res.json(records1)
+    
+    //buys
+    //let records2 =  await SimBuy.distinct("symbol")
+    //res.json(records2)
+    //return
+
+    //sells
+    let records3 =  await SimSell.distinct("symbol")
+    res.json(records3)
+}
+
+
+exports.saveOccasionParamsConf = (req, res, next) => {
+
+    //simulation
+    let s = new OccasionParamsConf({
+        name: "S",
         paramsPick: {
             long_term_trend: [5.0, 10.0, 15.0],
             period_length: [10, 20, 30, 40, 50, 60], //how deep look into the past before current (run) date
@@ -342,4 +516,18 @@ exports.saveSimParamsConf = (req, res, next) => {
         }
     })
     s.save()
+
+    //real
+    s = new OccasionParamsConf({
+        name: "R",
+        paramsPick: {
+            long_term_trend: [ 10.0 ],
+            period_length: [ 10 ], //how deep look into the past before current (run) date
+            potential_full: [ 10.0 ], //minimum difference between max value and min value
+            potential_level: [ 0.9 ], //current value potentially can grow % of full potential
+            date_min_before: [5, 7, 10] //minimum value date must occur N calendar days before current (run) date  
+        }
+    })
+    s.save()
+    res.json('saveOccasionParamsConf')
 }

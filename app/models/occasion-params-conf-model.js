@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const simParamsConfSchema = new mongoose.Schema({
+const occasionParamsConfSchema = new mongoose.Schema({
     name: String,
     paramsPick: Object,
     paramsBuy: Object,
@@ -9,4 +9,4 @@ const simParamsConfSchema = new mongoose.Schema({
     updated_at: { type: Date, default: null }
 })
 
-module.exports = mongoose.model('SimParamsConf', simParamsConfSchema)
+module.exports = mongoose.model('OccasionParamsConf', occasionParamsConfSchema)

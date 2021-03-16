@@ -18,9 +18,9 @@ module.exports = () => {
       (err) => {
         let dbStatus = ''
         if (err) {
-          dbStatus = `* Error connecting to DB: ${err}`
+          dbStatus = `* Error connecting to MongoDB: ${err}`
         }
-        dbStatus = `* DB Connection: OK`
+        dbStatus = `* MongoDB Connection: OK`
         if (process.env.NODE_ENV !== 'test') {
           // Prints initialization
           console.log(`* Database: MongoDB`)

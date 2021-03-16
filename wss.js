@@ -73,12 +73,12 @@ console.log('closing', wssClientID)
 
                 case 'ROBOT-S-PICK-INIT':
                     // console.log('on-message.CALCSTAT-INIT')
-                    RobotCtrl._launchPickOccasion(wssClientID, symbols, 'S') //SIMULATION                 
+                    RobotCtrl._launchPickOccasion(wssClientID, symbols, 'S', null) //SIMULATION                 
                     break
                     
                 case 'ROBOT-R-PICK-INIT':
                     // console.log('on-message.CALCSTAT-INIT')
-                    RobotCtrl._launchPickOccasion(wssClientID, symbols, 'R') //REAL                   
+                    RobotCtrl._launchPickOccasion(wssClientID, symbols, 'R', null) //REAL                   
                     break                    
 
                 case 'TAG-INIT':

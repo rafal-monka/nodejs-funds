@@ -2,7 +2,7 @@ const TFIValues = require('./models/tfi-values-model')
 // const TFIMetaData = require('./models/tfi-metadata-model')
 const Occasion = require('./models/occasion-model')
 const SimBuy = require('./models/sim-buy-model')
-const SimParamsConf = require('./models/sim-params-conf-model')
+const OccasionParamsConf = require('./models/occasion-params-conf-model')
 
 const linReg = require('./linear-regression.js')
 
@@ -13,26 +13,9 @@ const CONST_DAY = 1000*60*60*24
 const CONST_YEAR_DAYS = 365
 const CONST_LONG_TERM_TREND_DAYS = 1*CONST_YEAR_DAYS
 
-// const paramsPick = {
-//     long_term_trend: [5.0, 10.0, 15.0],
-//     period_length: [10, 20, 30, 40, 50, 60], //how deep look into the past before current (run) date
-//     potential_full: [5.0, 6.0, 7.0, 10.0, 15.0], //minimum difference between max value and min value
-//     potential_level: [0.5, 0.6, 0.7, 0.8, 0.9], //current value potentially can grow % of full potential
-//     date_min_before: [2, 3, 5, 7, 10] //minimum value date must occur N calendar days before current (run) date  
-// }
-
-// const paramsBuy = {
-//     buy_days_delay: [2, 3, 4, 5, 6, 7]
-// }
-
-// const paramsSell = {
-//     sell_days_delay: [3, 4, 5, 6, 7, 8],
-//     sell_threshold: [-1, 4.0, 6.0, 10.0, 15.0, 20.0] 
-// }
-
 // const paramsConf = {
 //     paramsPick: {
-//         long_term_trend: [5.0, 10.0, 15.0],
+//         long_term_trend: [5.0, 10.0, 15.0], //
 //         period_length: [10, 20, 30, 40, 50, 60], //how deep look into the past before current (run) date
 //         potential_full: [5.0, 6.0, 7.0, 10.0, 15.0], //minimum difference between max value and min value
 //         potential_level: [0.5, 0.6, 0.7, 0.8, 0.9], //current value potentially can grow % of full potential
@@ -47,48 +30,101 @@ const CONST_LONG_TERM_TREND_DAYS = 1*CONST_YEAR_DAYS
 //     }
 // }
 
+// calibration 2021-03-14
+// "paramsPick": {
+//     "long_term_trend": [
+//       5,
+//       10 (?)
+//     ],
+//     "period_length": [
+//       10, (*)
+//       20,
+//       30
+//     ],
+//     "potential_full": [
+//       6, 
+//       10,
+//       15 (*)
+//     ],
+//     "potential_level": [
+//       0.5, 
+//       0.8,
+//       0.9 (*)
+//     ],
+//     "date_min_before": [
+//       2,
+//       3, 
+//       5,
+//       7,
+//       10 (*)
+//     ]
+//   },
+//   "paramsBuy": {
+//     "buy_days_delay": [
+//       2,
+//       3, 
+//       4, (*)
+//       5
+//     ]
+//   },
+//   "paramsSell": {
+//     "sell_days_delay": [
+//       3,
+//       4, (*)
+//       5
+//     ],
+//     "sell_threshold": [
+//       -1, (*)
+//       4,
+//       6,
+//       10 (*)
+//     ]
+//   },
+
+
+const paramsRealConf = {
+    long_term_trend: [10.0],
+    period_length: [10],
+    potential_full: [10.0],
+    potential_level: [0.9],
+    date_min_before: [7]
+}
+
 //------------------------------------------------OCCASION (PICKS)
 async function processOccasions(symbol, values, mode, minTFIValuesDate) {
     let runs = []
     let runDates = []
 
-    let paramsConf = await SimParamsConf.find()
-// console.log('processOccasions, paramsConf=', paramsConf[0])
-    if (mode === 'S') { //S=SIMULATION
-        runDates = values.filter(value => value.date >= CONST_SIMULATE_MIN_RUN_DATE.getTime()).map(value => value.date2)        
-        paramsConf[0].paramsPick.long_term_trend.forEach(long_term_trend => {
-            paramsConf[0].paramsPick.period_length.forEach(period_length => {
-                paramsConf[0].paramsPick.potential_full.forEach(potential_full => {
-                    paramsConf[0].paramsPick.potential_level.forEach(potential_level => {
-                        paramsConf[0].paramsPick.date_min_before.forEach(date_min_before => {
-                            runs.push({
-                                long_term_trend: long_term_trend,
-                                period_length: period_length,
-                                potential_full: potential_full,
-                                potential_level: potential_level,
-                                date_min_before: date_min_before
-                            })    
+    let paramsConf = await OccasionParamsConf.find( {name: mode}) 
+
+    paramsConf[0].paramsPick.long_term_trend.forEach(long_term_trend => {
+        paramsConf[0].paramsPick.period_length.forEach(period_length => {
+            paramsConf[0].paramsPick.potential_full.forEach(potential_full => {
+                paramsConf[0].paramsPick.potential_level.forEach(potential_level => {
+                    paramsConf[0].paramsPick.date_min_before.forEach(date_min_before => {
+                        runs.push({
+                            long_term_trend: long_term_trend,
+                            period_length: period_length,
+                            potential_full: potential_full,
+                            potential_level: potential_level,
+                            date_min_before: date_min_before
                         })    
-                    })
+                    })    
                 })
             })
         })
+    })
 
+// console.log('processOccasions, paramsConf=', paramsConf[0])
+    if (mode === 'S') { //S=SIMULATION
+        runDates = values.filter(value => value.date >= CONST_SIMULATE_MIN_RUN_DATE.getTime()).map(value => value.date2)        
+        
         //delete ALL in simulation mode
         await Occasion.deleteMany({symbol: symbol, mode: 'S'}, function(err, result) {} ) 
     } else {
         //production: current (last tfi value) date
         let run_date = values[values.length-1].date2
         runDates.push(run_date)
-
-        //###??? production: calibrated parameters...
-        runs.push({
-            long_term_trend: 10.0,
-            period_length: 30,
-            potential_full: 10.0,
-            potential_level: 0.7,
-            date_min_before: 3
-        }) 
 
         //delete ONLY current run_date in real mode
         await Occasion.deleteMany({symbol: symbol, mode: 'R', run_date: new Date(run_date)}, function(err, result) {} ) 
@@ -201,7 +237,7 @@ function findOccasion(startOfPeriod, date, params, values) {
 }
 
 exports.pickOccasions = async (symbol, mode) => {
-    let paramsConf = await SimParamsConf.find({})
+    let paramsConf = await OccasionParamsConf.find({name: mode})
 // console.log('pickOccasions, paramsConf=', JSON.stringify(paramsConf[0]))
     let maxPeriod = Math.max(...paramsConf[0].paramsPick.period_length)
     let today = new Date()
@@ -237,7 +273,7 @@ exports.pickOccasions = async (symbol, mode) => {
 //------------------------------------------------BUY
 async function processBuys(occasions, values) {
     let runs = []
-    let paramsConf = await SimParamsConf.find()
+    let paramsConf = await OccasionParamsConf.find('S')
     //console.log('processBuys, paramsConf=', paramsConf[0])
     paramsConf[0].paramsBuy.buy_days_delay.forEach(buy_days_delay => {  
         runs.push({
@@ -320,7 +356,7 @@ exports.simulateBuys = (symbol) => {
 //------------------------------------------------SELL
 async function processSells(buys, values) {
     let runs = []
-    let paramsConf = await SimParamsConf.find()
+    let paramsConf = await OccasionParamsConf.find({name: 'S'})
     // console.log(paramsConf)
     paramsConf[0].paramsSell.sell_days_delay.forEach(sell_days_delay => { 
         paramsConf[0].paramsSell.sell_threshold.forEach(sell_threshold => {  

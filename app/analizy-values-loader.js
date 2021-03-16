@@ -74,7 +74,7 @@ exports.callbackFunction = (item, value)=> {
                             initDate: (res.initDate === null) ? arr[0].date : res.initDate,
                             lastDate: arr[arr.length-1].date,
                             status: 'OK',
-                            errorMsg: ''
+                            errorMsg: 'count: '+arr.length
                         })
                     }
                 })
@@ -84,8 +84,6 @@ exports.callbackFunction = (item, value)=> {
                     errorMsg: 'No new data'
                 })
             }
-
-            return arr.length
 
         })
     }

@@ -280,7 +280,7 @@ exports.notifyClient = (wssClientID, event, symbol, data) => {
 
 
 exports._launchLoadValues = (wssClientID, currentDate, symbols) => {
-    let count = [0,0]
+    let count = [0, 0]
     console.log(new Date(), 'tfi-controller._launchLoadValues', symbols)    
     let timestampStart
     this.currentDate = currentDate
@@ -302,8 +302,8 @@ exports._launchLoadValues = (wssClientID, currentDate, symbols) => {
             console.log(new Date(), 'callback item:', item.symbol)
             switch (item.source.toUpperCase()) {
                 //OLD:case 'MONEY': count[0] += moneyValueLoader.callbackFunction(item, value); break;
-                case 'BANKIER': count[0] += bankierLoader.callbackFunction(item, value); break;
-                case 'ANALIZY': count[1] += analizyLoader.callbackFunction(item, value); break;
+                case 'BANKIER': bankierLoader.callbackFunction(item, value); break;
+                case 'ANALIZY': analizyLoader.callbackFunction(item, value); break;
                 default: console.log('Error callbackFunction. Item source '+item.source+' not supported') 
             }
         },        
