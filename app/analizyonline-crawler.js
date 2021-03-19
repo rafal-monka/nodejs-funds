@@ -2,6 +2,7 @@ var axios = require('axios');
 var DomParser = require('dom-parser');
 var Launcher = require("./launcher.js");
 const storage = require('./fund-storage')
+const TFIMetadata = require('./models/tfi-metadata-model')
 const email = require("./email")
 const TFI = require('../config/TFI')
 const Funds = require('./models/funds-model')
@@ -9,7 +10,12 @@ const utils = require("./utils.js")
 
 exports.perform = async (req) => {
     console.log(new Date(), 'analizyonline-crawler perform')
-    let dictionary = await storage.getDictionary()    
+    let res = await TFIMetadata.find({tags: 'MY'}).sort({symbol: 1})//storage.getDictionary()  
+    let dictionary = res.map(item=> ({
+        symbol: item.symbol, 
+        aolurl: 'https://www.analizy.pl'+TFI.TFIs.find(tfi => tfi.symbol === item.symbol).href
+    }))
+
     // return 
     let pad = new Launcher(
         10, 
@@ -25,7 +31,7 @@ exports.perform = async (req) => {
         //finalCallBack
         (param) => {         
             let arr = []
-            //console.log('param', param)
+            //console.log('finalCallBack', param)
             //return
 
             //store
@@ -112,7 +118,7 @@ exports.perform = async (req) => {
 
 
 getFund = (item) => {    
-    //console.log('getFund', item.code);
+    console.log('getFund', item.aolurl);
     try {
         return axios({
             url: item.aolurl,
@@ -126,6 +132,7 @@ getFund = (item) => {
 
 
 parseFund = (item, html) => {  
+    console.log('parseFund', item.symbol)
     var parser = new DomParser();
     var dom = parser.parseFromString(html.data);
     

@@ -36,7 +36,7 @@ exports.json2Table = function(json, alignArr, colorCol) {
   
   
     //Map over columns, make headers,join into string
-    let headerRow = cols
+    let headerRow = `<td>Nr</td>`+cols
       .map(col => `<th>${col}</th>`)
       .join("");
   
@@ -46,8 +46,8 @@ exports.json2Table = function(json, alignArr, colorCol) {
     //then return a row of the tds
     //finally join all the rows together
     let rows = json
-      .map(row => {
-        let tds = cols.map((col, ci) => `<td style="text-align: ${alignArr[ci]===0?'left':'right'}">${row[col]}</td>`).join("");
+      .map((row, ri) => {
+        let tds = `<td>${ri+1}</td>`+cols.map((col, ci) => `<td style="text-align: ${alignArr[ci]===0?'left':'right'}">${row[col]}</td>`).join("");
         return `<tr style="color: ${row[colorCol]<0?'red':row[colorCol]===0?'black':'green'}">${tds}</tr>`;
       })
       .join("");

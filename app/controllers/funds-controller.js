@@ -1,7 +1,10 @@
 const Funds = require('./../models/funds-model')
-const Investments = require('./../models/investments-model')
-const Dict = require('./../models/dicts-model')
+// const Investments = require('./../models/investments-model')
+const TFIMetadata = require('./../models/tfi-metadata-model')
+const UnitRegister = require('./../models/unit-register-model')
+// const Dict = require('./../models/dicts-model')
 const utils = require("./../utils.js")
+const TFI = require('./../../config/TFI')
 
 const CONST_DATE_START = "2020-03-01"
 const CONST_DATE_MIN_TS = "2020-07-01"
@@ -29,28 +32,37 @@ exports.getAll = (req, res, next) => {
 }
 
 exports.getData = (req, res, next) => {  
-    let DictQuery = Dict.find({}).sort({symbol: 1})
-    let InvQuery = Investments.find({}) 
-    let fundQuery = Funds.find({date: {$gt: new Date(CONST_DATE_START)}}).sort({symbol: 1, date: 1})
+    let DictQuery = TFIMetadata.find({tags: 'MY'}).sort({symbol: 1}) //Dict.find({}).sort({symbol: 1})     
+    let onDate = new Date()
+    let InvQuery =  UnitRegister.find({ 
+        fromDate: {$lte: onDate},
+        toDate: {$gt: onDate}
+    }).sort({symbol:1}) //let InvQuery2 = Investments.find({})
 
+    let fundQuery = Funds.find({date: {$gt: new Date(CONST_DATE_START)}}).sort({symbol: 1, date: 1})
+//     res.json(TFI.TFIs.find(tfi => tfi.symbol === 'AGF07'))
+// return
     Promise.all([DictQuery, InvQuery, fundQuery])
         .then(function (result) {
+            let dictionary = result[0].map(item=> ({
+                symbol: item.symbol, 
+                aolurl: 'https://www.analizy.pl'+TFI.TFIs.find(tfi => tfi.symbol === item.symbol).href
+            }))
+
+            let investments = result[1].map(item => ({
+                symbol: item.symbol,
+                capital: Math.round( item.units*item.price *100)/100,
+                dateStart: item.fromDate,
+                type: TFI.TFIs.find(tfi => tfi.symbol === item.symbol).type === 'Akcyjne' ? 'AKC' : 'OBL'
+            }))
+            // res.json(investments)
+            // return
 
             monthlyArrOBL = []
             monthlyArrAKC = []
 
-            //dictionary
-            let dict = result[0].map(item => {
-                return {
-                    symbol: item.symbol,
-                    moneyplsymbol: item.moneyplsymbol, //###???unused
-                    code: item.code,
-                    aolurl: item.aolurl
-                }
-            })
-
             //investments def
-            let invs = result[1].map(item => {
+            let invs = investments.map(item => {
                 return {
                     symbol: item.symbol,
                     type: item.type,
@@ -226,8 +238,8 @@ exports.getData = (req, res, next) => {
             // }, fundsLOValues)
 
             res.status(200).json( {
-                dict: dict,
-                // invs: invs,
+                dict: dictionary,
+                invs: invs,
                 fundsLOValuesAKC: fundsLOValuesAKC,
                 fundsLOValuesOBL: fundsLOValuesOBL,
                 chartDataOBL: chartDataOBL,

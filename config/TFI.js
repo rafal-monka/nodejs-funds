@@ -2,7 +2,7 @@ exports.myBondTFISymbols = "ARK11,ARK23,ING04"
 exports.DATE_COMPARE_FROM = new Date('2021-01-01') //min date to compare
 exports.CONST_CBONDS_FUNDS = this.myBondTFISymbols+",*" // *=cbonds dynamic calculation 
 
-const TFIs = [
+exports.TFIs = [
 	{
 		source: "ANALIZY", symbol: "AGF07",
 		name: "AGIO Agresywny Spółek Wzrostowych",
@@ -3788,9 +3788,9 @@ const TFIs = [
 		info: "akcji polskich małych i średnich spółek"
 	},
 	{
-		source: "ANALIZY", symbol: "ARK01",
+		source: "ANALIZY", symbol: "ARS01",
 		name: "Santander Akcji Polskich",
-		href: "/fundusze-inwestycyjne-otwarte/ARK01/santander-akcji-polskich",
+		href: "/fundusze-inwestycyjne-otwarte/ARS01/santander-akcji-polskich-s",
 		type: "Akcyjne",
 		firm: "Santander FIO",
 		info: "akcji polskich uniwersalne"
@@ -3828,17 +3828,17 @@ const TFIs = [
 		info: "papierów dłużnych europejskich uniwersalne"
 	},
 	{
-		source: "ANALIZY", symbol: "ARK29",
+		source: "ANALIZY", symbol: "ARK29S",
 		name: "Santander Obligacji Korporacyjnych",
-		href: "/fundusze-inwestycyjne-otwarte/ARK29/santander-obligacji-korporacyjnych",
+		href: "/fundusze-inwestycyjne-otwarte/ARK29S/santander-obligacji-korporacyjnych-s",
 		type: "Dłużne",
 		firm: "Santander FIO",
 		info: "papierów dłużnych polskich korporacyjnych"
 	},
 	{
-		source: "ANALIZY", symbol: "ARK11",
+		source: "ANALIZY", symbol: "ARS11",
 		name: "Santander Obligacji Skarbowych",
-		href: "/fundusze-inwestycyjne-otwarte/ARK11/santander-obligacji-skarbowych",
+		href: "/fundusze-inwestycyjne-otwarte/ARS11/santander-obligacji-skarbowych-s",
 		type: "Dłużne",
 		firm: "Santander FIO",
 		info: "papierów dłużnych polskich skarbowych długoterminowych"
@@ -3860,9 +3860,9 @@ const TFIs = [
 		info: "mieszane polskie stabilnego wzrostu"
 	},
 	{
-		source: "ANALIZY", symbol: "ARK33",
+		source: "ANALIZY", symbol: "ARK33S",
 		name: "Santander Platinum Stabilny",
-		href: "/fundusze-inwestycyjne-otwarte/ARK33/santander-platinum-stabilny",
+		href: "/fundusze-inwestycyjne-otwarte/ARK33S/santander-platinum-stabilny-s",
 		type: "Mieszane",
 		firm: "Santander FIO",
 		info: "mieszane zagraniczne stabilnego wzrostu"
@@ -3964,9 +3964,9 @@ const TFIs = [
 		info: "akcji zagranicznych sektorowych pozostałe"
 	},
 	{
-		source: "ANALIZY", symbol: "ARK04",
+		source: "ANALIZY", symbol: "ARS04",
 		name: "Santander Stabilnego Wzrostu",
-		href: "/fundusze-inwestycyjne-otwarte/ARK04/santander-stabilnego-wzrostu",
+		href: "/fundusze-inwestycyjne-otwarte/ARS04/santander-stabilnego-wzrostu-s",
 		type: "Mieszane",
 		firm: "Santander FIO",
 		info: "mieszane polskie stabilnego wzrostu"
@@ -4427,9 +4427,9 @@ exports.getList = (symbols) => {
     //console.log('getList.symbols', symbols)
 	let ret
 	if (symbols === '*') {
-		ret = TFIs
+		ret = this.TFIs
 	} else {
-		ret = TFIs.filter(tfi => symbols.findIndex(symbol => tfi.symbol === symbol) >-1)		
+		ret = this.TFIs.filter(tfi => symbols.findIndex(symbol => tfi.symbol === symbol) >-1)		
 	}
 	ret = ret.sort((a,b) => a.name.toUpperCase() > b.name.toUpperCase() ? 1: -1)
     //ret = TFIs.filter(tfi => ['TFI6771','TFI8172','TFI5438','TFI1','TFI112','TFI4562','TFI66','TFI4635'].indexOf(tfi.symbol) > -1)

@@ -17,6 +17,8 @@ async function _purchase(purchase) {
 
 //end-point for POST request to register new purchase
 exports.purchaseUnits = async (req, res, next) => {
+    // res.json( req.body )
+    // return
     try {
         let result = await _purchase(req.body.purchase)
         res.json( { 
@@ -39,6 +41,8 @@ async function _redeem(redemption) {
 
 //end-point for POST request to redeem units
 exports.redeemUnits = async (req, res, next) => {  
+    //res.json( req.body )
+    //return
     try {
         let result = await _redeem(req.body.redemption)
         res.json( { 

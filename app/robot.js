@@ -13,13 +13,15 @@ const CONST_DAY = 1000*60*60*24
 const CONST_YEAR_DAYS = 365
 const CONST_LONG_TERM_TREND_DAYS = 1*CONST_YEAR_DAYS
 
+//occasionParams_date_min_before,buyParams_buy_days_delay = {2,3}, {2,4}, {3,3} 
+
 // const paramsConf = {
 //     paramsPick: {
 //         long_term_trend: [5.0, 10.0, 15.0], //
-//         period_length: [10, 20, 30, 40, 50, 60], //how deep look into the past before current (run) date
+//         period_length: [10, 15, 20, 25, 30], //how deep look into the past for occasion picks before current (run) date
 //         potential_full: [5.0, 6.0, 7.0, 10.0, 15.0], //minimum difference between max value and min value
 //         potential_level: [0.5, 0.6, 0.7, 0.8, 0.9], //current value potentially can grow % of full potential
-//         date_min_before: [2, 3, 5, 7, 10] //minimum value date must occur N calendar days before current (run) date  
+//         date_min_before: [2, 3, 4, 5, 6, 7, 8, 9, 10] //re-try: minimum value date must occur N calendar days before current (run) date  
 //     },
 //     paramsBuy: {
 //         buy_days_delay: [2, 3, 4, 5, 6, 7]
@@ -51,12 +53,9 @@ const CONST_LONG_TERM_TREND_DAYS = 1*CONST_YEAR_DAYS
 //       0.8,
 //       0.9 (*)
 //     ],
-//     "date_min_before": [
-//       2,
-//       3, 
-//       5,
-//       7,
-//       10 (*)
+//     "date_min_before": [ //calibrated: 
+//       2, 
+//       3,
 //     ]
 //   },
 //   "paramsBuy": {
@@ -165,10 +164,10 @@ function findOccasion(startOfPeriod, date, params, values) {
     
     //find minimum (but only later than maximum point) - filter by dates
     let minimum = null
-    records = records.filter(point => point.value < maximum.value 
-                                      && point.value < current.value 
-                                      && point.date > maximum.date 
-                                      && point.date < new Date(date).getTime() - params.date_min_before*CONST_DAY)
+    records = records.filter(point => point.value < maximum.value // lower than maximum
+                                      && point.value < current.value  // lower than current
+                                      && point.date > maximum.date // later than maximum
+                                      && point.date < new Date(date).getTime() - params.date_min_before*CONST_DAY) // before N days than run date
     if (records.length > 0) {
         minimum = records[0]
         records.forEach(point => {
@@ -272,8 +271,9 @@ exports.pickOccasions = async (symbol, mode) => {
 
 //------------------------------------------------BUY
 async function processBuys(occasions, values) {
+    //console.log('robot.processBuys[1]')
     let runs = []
-    let paramsConf = await OccasionParamsConf.find('S')
+    let paramsConf = await OccasionParamsConf.find({name: 'S'})
     //console.log('processBuys, paramsConf=', paramsConf[0])
     paramsConf[0].paramsBuy.buy_days_delay.forEach(buy_days_delay => {  
         runs.push({
@@ -281,6 +281,7 @@ async function processBuys(occasions, values) {
         })
     })
 
+    //console.log('robot.processBuys[2]')
     let buys = []
     runs.forEach(params => {
         occasions.forEach(occasion => {
@@ -293,7 +294,7 @@ async function processBuys(occasions, values) {
 } 
 
 function makeBuy(params, occasion, values) {
-    // console.log('occasion.run_date', occasion.run_date)
+    //console.log('robot.makeBuy', occasion.run_date)
     let init = undefined
     let future_values = values.filter((value, index) => value.date >= occasion.run_date)
     if (params.buy_days_delay <= future_values.length-1) {
@@ -322,7 +323,7 @@ function makeBuy(params, occasion, values) {
 }
 
 exports.simulateBuys = (symbol) => {
-    console.log('robot.simulateBuy', symbol)
+    //console.log('robot.simulateBuys', symbol)
     return new Promise(function(resolve, reject) {
         try {
             Occasion.find({symbol: symbol})
@@ -390,7 +391,6 @@ function makeSell(params, buy, values) {
     while (i < future_values.length) {
 // console.log('searching...', i, buy.initDate, buy.initValue, future_values[i])
         let tmp_yield = Math.round( (future_values[i].value - buy.initValue)/buy.initValue*100 *100)/100
-// console.log('tmp_yield', tmp_yield, threshold)
         if (tmp_yield >= threshold) {
             stopValue = future_values[i]
 // console.log('found')
@@ -399,6 +399,7 @@ function makeSell(params, buy, values) {
         i++
     }
 
+    //find real value date (delayed by N days)
     if (stopValue !== undefined) {
 // console.log('selling?...', i + params.sell_days_delay, future_values.length-1, i + params.sell_days_delay <= future_values.length-1)
         if (i + params.sell_days_delay <= future_values.length-1) {
@@ -413,6 +414,10 @@ function makeSell(params, buy, values) {
     } else {
         status = 'SOLD'
     }
+
+// if (end.value - buy.initValue < 0) {
+//     console.log('???', buy._id, threshold, params.sell_threshold, buy.potentialYield, i)
+// }
 
     return {
         symbol: buy.symbol,
@@ -439,7 +444,7 @@ exports.simulateSells = (symbol) => {
     console.log('robot.simulateSell', symbol)
     return new Promise(function(resolve, reject) {
         try {
-            SimBuy.find({symbol: symbol})
+            SimBuy.find( {symbol: symbol} )
                        //###!!!MongoDB Memory.sort({symbol: 1, run_date: 1, initDate: 1}) 
                        .then(function (buys) {
                             let minTFIValuesDate = buys.reduce((min, value) => Math.min(min, new Date(value.initDate)) || min, new Date()  )

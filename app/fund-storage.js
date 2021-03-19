@@ -5,6 +5,8 @@ const Result = require('./models/result-model')
 const RoiController = require('./controllers/rois-controller.js')
 const TFIvalues = require('./models/tfi-values-model')
 
+
+//###unused
 exports.getDictionary = async () => {
     let res = await Dictionary.find({})
     return res

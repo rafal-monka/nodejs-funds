@@ -65,6 +65,7 @@ exports._launchPickOccasion = (wssClientID, symbols, mode, req) => {
             }))
             //insert
             if (occasionsSerialized.length > 0) {
+                console.log(item.symbol, 'robot-controller.runOccasionPicks callbackFunction insertingMany...', mode, occasionsSerialized.length)
                 Occasion.insertMany(occasionsSerialized, function (err, docs) {
                     if (err){ 
                         console.error(err);
@@ -83,10 +84,10 @@ exports._launchPickOccasion = (wssClientID, symbols, mode, req) => {
             } else {
                 TFIMetaDataCtrl.update( item.symbol, {
                     status: 'DONE',
-                    errorMsg: 'No ocasions'
+                    errorMsg: 'No occasions'
                 })
             }
-            return occasionsSerialized.length
+            return occasionsSerialized.map(item => item.run_date)
         },
         //catchFunction
         (error, item)=> {
@@ -99,11 +100,11 @@ exports._launchPickOccasion = (wssClientID, symbols, mode, req) => {
         //finalCallBack
         (result) => {         
             console.log('_launchPickOccasion final') 
-            //console.log(result)
+            console.log(result)
             if (mode === 'R' && req !== null) {
                 email.sendEmail(' Funds (Occasions) '+new Date(),                             
                                 '<a href="'+req.protocol + '://' + req.get('host')+'/occasion/preview/R/*">Show occasions panel</a>'
-                                +'<div><pre>'+JSON.stringify(result.filter(f => f.output > 0).map(f => ({ symbol: f.item.name, count: f.output}) ), ' ', 2)+'</pre></div>')
+                                +'<div><pre>'+JSON.stringify(result.filter(f => f.output.length > 0).map(f => ({ symbol: f.item.name, run_dates: f.output}) ), ' ', 2)+'</pre></div>')
             }                                                        
         } 
     );
@@ -148,11 +149,13 @@ exports.launchSimulateBuy = async (req, res, next) => {
         symbols = req.params.symbols.split(',').map(item => ({symbol: item}))
         query = { $or: symbols }    
     }
+
+    //console.log('launchSimulateBuy.symbols', symbols)
     let occasions = await Occasion.find(query).sort({symbol: 1})    
     symbols = [...new Set( occasions.map(x => x.symbol))]  
 
-    // res.status(200).json(symbols)
-    // return
+// res.status(200).json(occasions)
+// return
 
     let pad = new Launcher(
         5, 
