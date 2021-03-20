@@ -4,7 +4,7 @@ const Occasion = require('./models/occasion-model')
 const SimBuy = require('./models/sim-buy-model')
 const OccasionParamsConf = require('./models/occasion-params-conf-model')
 
-const linReg = require('./linear-regression.js')
+const linReg = require('./libs/linear-regression.js')
 
 // const CONST_SIMULATE = '#SIMULATE'
 const CONST_SIMULATE_MIN_RUN_DATE = new Date("2020-10-01")

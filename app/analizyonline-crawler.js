@@ -1,12 +1,13 @@
 var axios = require('axios');
 var DomParser = require('dom-parser');
-var Launcher = require("./launcher.js");
+var Launcher = require("./libs/launcher.js");
+const email = require("./libs/email")
+const utils = require("./libs/utils.js")
 const storage = require('./fund-storage')
 const TFIMetadata = require('./models/tfi-metadata-model')
-const email = require("./email")
 const TFI = require('../config/TFI')
 const Funds = require('./models/funds-model')
-const utils = require("./utils.js")
+
 
 exports.perform = async (req) => {
     console.log(new Date(), 'analizyonline-crawler perform')

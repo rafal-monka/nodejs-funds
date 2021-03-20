@@ -3,7 +3,7 @@ const router = express.Router()
 const coreHandlers = require('../controllers/core-controller')
 const fs = require('fs')
 const routesPath = `${__dirname}/`
-const { removeExtensionFromFile } = require('../utils')
+const { removeExtensionFromFile } = require('../libs/utils')
 
 
 //myMiddleware

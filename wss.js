@@ -5,8 +5,6 @@ const TFIMetaDataCtrl = require('./app/controllers/tfi-controller.js')
 const AnalyseTrendsCtrl = require('./app/controllers/analyse-trends-controller')
 const CalculateStatsCtrl = require('./app/controllers/calculate-stats-controller')
 const RobotCtrl = require('./app/controllers/robot-controller')
-//const auth = require('./auth');
-//const { get } = require('http');
 
 var wss //web socket server
 
@@ -30,9 +28,7 @@ exports.init = (server) => {
     wss.on('connection', function connection(ws, request) {
         //let authToken = url.parse(request.url,true).query.token 
         let wssClientID = request.headers['sec-websocket-key'] 
-console.log('on-connection, wssClientID', wssClientID)
         ws.wssClientID = wssClientID
-// console.log('on-connection, getWssClients', getWssClients()[0].wssClientID)
         let response = { 
             event: 'CONNECTION',
             payload: 'CONNECTED'
@@ -40,7 +36,6 @@ console.log('on-connection, wssClientID', wssClientID)
         notifyClient(wssClientID, response)
 
         ws.on('close', function message(code, msg) {
-console.log('closing', wssClientID)   
             let response = { 
                 event: 'CONNECTION',
                 payload: 'DISCONNECTED'
@@ -49,44 +44,35 @@ console.log('closing', wssClientID)
         })
             
         ws.on('message', function message(obj) {
-            // console.log('on-message', obj)
             let msg = JSON.parse(obj)
             let response
             let symbols = msg.value
             switch (msg.action) {
 
                 case 'LOADVALUE-INIT':
-                    // console.log('on-message.LOADVALUE-STARTED')
-                    //TFIMetaDataCtrl.loadValues(wssClientID, symbols)
                     TFIMetaDataCtrl._launchLoadValues(wssClientID, new Date(), symbols) 
                     break
 
                 case 'CALCLR-INIT':
-                    // console.log('on-message.CALCLR-INIT')
                     AnalyseTrendsCtrl.calcLRFunds(wssClientID, symbols)                     
                     break
 
                 case 'CALCSTAT-INIT':
-                    // console.log('on-message.CALCSTAT-INIT')
-                    CalculateStatsCtrl.calcStats(wssClientID, symbols)                     
+                    CalculateStatsCtrl._launchCalcStats(wssClientID, symbols)                     
                     break
 
                 case 'ROBOT-S-PICK-INIT':
-                    // console.log('on-message.CALCSTAT-INIT')
                     RobotCtrl._launchPickOccasion(wssClientID, symbols, 'S', null) //SIMULATION                 
                     break
                     
                 case 'ROBOT-R-PICK-INIT':
-                    // console.log('on-message.CALCSTAT-INIT')
                     RobotCtrl._launchPickOccasion(wssClientID, symbols, 'R', null) //REAL                   
                     break                    
 
                 case 'TAG-INIT':
-                    // console.log('on-message.TAG-INIT', symbols)
                     TFIMetaDataCtrl._launchTag(wssClientID, symbols.symbols, symbols.tag)                   
                     break 
                     
-
                 case 'TEST':
                     let msg = JSON.parse(obj)
                     response = { 

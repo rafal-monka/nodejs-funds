@@ -1,20 +1,24 @@
-const utils = require("./libs/utils.js")
-const TFIValues = require('./models/tfi-values-model')
-var variationsWithRepetion = require('./libs/variations-repetition').variationsWithRepetion
+const utils = require("../libs/utils.js")
+const TFIValues = require('../models/tfi-values-model')
 
-const CONST_MIN_DATE = new Date("2010-01-01")
 const CONST_DAY_MILLS = 1000*60*60*24
 
-exports.calcStats = (symbol) => {
+exports.getMonthlyValues = (req, res, next) => {  
+    let symbols = req.params.symbols.split(',').map(item => {return {symbol: item}})
+    let minDate = new Date(req.params.date)
+    let period = req.params.period.toUpperCase()
+    let query = { $or: symbols, date: {$gte: minDate } }
 
-    let symbols = symbol.split(',').map(item => {return {symbol: item}})
-    let period = "M" //month
-    let query = { $or: symbols, date: {$gte: CONST_MIN_DATE } }
+//console.log(query)
 
-    return new Promise(function(resolve, reject) {
-        resolve('TEST...'+JSON.stringify(query))
-    })
+    calcMonthlyValues(query, period)
+        .then(output => {
+            res.status(200).json(output)
+        })
+        .catch (next)
+}
 
+function calcMonthlyValues(query, period) {
     return new Promise(function(resolve, reject) {
         TFIValues.find( query ) 
             .sort( {symbol: 1, date: 1})
@@ -133,47 +137,7 @@ exports.calcStats = (symbol) => {
                         })
                     }
                 })
-                // console.log(sumDataOut) 
-                
-
-                //simulate earnings for portfolio
-                let portfolioSimArr = [] 
-                let portfolioConf = [
-                    {symbol: 'ARK11', amount: 1000},
-                    {symbol: 'ARK29', amount: 40000},
-                    {symbol: 'ARK04', amount: 30000},
-                    {symbol: 'ARK33', amount: 30000},                
-                    {symbol: 'ARK27', amount: 100000},
-                    {symbol: 'ARK01', amount: 1000},
-                    {symbol: 'SKR36', amount: 19500},                    
-                    {symbol: 'SKR54', amount: 19500},                    
-                    {symbol: 'SKR23', amount: 15000},
-                    {symbol: 'ALL14', amount: 6000},
-                    {symbol: 'ALL75', amount: 6000},
-                    {symbol: 'ALL75', amount: 4000},
-                    {symbol: 'ING17', amount: 6000},
-                    {symbol: 'ING17', amount: 4000},
-                    {symbol: 'ALL75', amount: 4000},
-                    {symbol: 'ING65', amount: 10000},
-                    {symbol: 'UNI32', amount: 15000},
-                    {symbol: 'ING04', amount: 27000},
-                    {symbol: 'ING07', amount: 10000},
-                    {symbol: 'ING76', amount: 50000},
-                    {symbol: 'ING65', amount: 1000},
-                    {symbol: 'UNI03', amount: 100},                                        
-                ]
-                //calculate portfolio changes
-                if (false) fundData.forEach(fund => {
-                    let position = portfolioConf.find(ptf => ptf.symbol === fund.name)                    
-                    fund.data.forEach(dat => {
-                        portfolioSimArr.push([
-                            fund.name, 
-                            new Date(dat[0]).toISOString().substring(0,10),
-                            dat[1],
-                            Math.round(dat[1] * position.amount/100 * 100)/100
-                        ])
-                    })  
-                })
+                // console.log(sumDataOut)             
 
                 console.log('fundData.length', fundData.length) 
                 resolve({
@@ -191,4 +155,5 @@ exports.calcStats = (symbol) => {
     })
          
 }
+
 

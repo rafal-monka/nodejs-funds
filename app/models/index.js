@@ -1,6 +1,6 @@
 const fs = require('fs')
 const modelsPath = `${__dirname}/`
-const { removeExtensionFromFile } = require('../utils')
+const { removeExtensionFromFile } = require('../libs/utils')
 
 module.exports = () => {
   /*

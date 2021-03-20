@@ -2,8 +2,8 @@ const axios = require('axios')
 const qs = require('querystring')
 
 
-const utils = require("./utils.js")
-const Launcher = require("./launcher.js")
+const utils = require("./libs/utils.js")
+const Launcher = require("./libs/launcher.js")
 //const TFI = require('../config/TFI')
 const TFIMetaDataCtrl = require('./controllers/tfi-controller')
 const TFIvalues = require('./models/tfi-values-model')

@@ -1,4 +1,4 @@
-const Launcher = require("./launcher.js")
+const Launcher = require("./libs/launcher.js")
 const TFI = require('../config/TFI')
 const TFIMetaDataCtrl = require('./controllers/tfi-controller')
 const AnalyseTrendsCtrl = require('./controllers/analyse-trends-controller')

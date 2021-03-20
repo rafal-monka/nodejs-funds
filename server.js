@@ -6,21 +6,10 @@ const express = require("express")
 const cors = require('cors')
 const bodyParser = require("body-parser");
 const path = require('path')
-const initDatabase = require('./config/database')
-const schedule = require('node-schedule')
+const initMongoDatabase = require('./config/database')
 const wss = require('./wss')
-
-const mojefundusze = require("./app/mojefundusze-crawler.js")
-const moneyValueLoader = require("./app/money-values-loader.js")
-// ###unused: const money = require("./app/money-crawler.js")
-// ###unused: const money2 = require("./app/money2-crawler.js")
 const aol = require("./app/analizyonline-crawler.js")
-
 const storage = require('./app/fund-storage')
-
-// ###unused: const observations = require("./app/controllers/observations.js");
-// ###unused: const status = require("./app/status.js");
-// ###unused: const RoiController = require("./app/controllers/rois-controller.js")
 
 const app = express();
 
@@ -33,13 +22,11 @@ app.get("/home", (req, res) => {
 });
 
 app.get("/perform", (req, res) => {
-    //mojefundusze.perform()
     aol.perform(req)
     res.json({ message: "aol.perform called. Wait for email." });
 });
 
 app.get("/perform/check", (req, res) => {
-    //mojefundusze.perform()
     storage.checkFundsAgaistTFIvalues()
     res.json({ message: "Perform CHECK called. Check out logs" });
 });
@@ -66,13 +53,27 @@ var server = app.listen(PORT, () => {
     console.log(`Server Funds is running on port ${PORT}.`);
 });
 
-//init database
-initDatabase()
+//init Mongo database
+initMongoDatabase()
 
 // mojefundusze.perform() 
 // aol.perform()
 
 //[eof]
+
+//-----------------old
+// const schedule = require('node-schedule')
+
+// ###unused: mojefundusze.perform()
+
+// ###unused: const mojefundusze = require("./app/mojefundusze-crawler.js")
+// ###unused: const moneyValueLoader = require("./app/money-values-loader.js")
+// ###unused: const money = require("./app/money-crawler.js")
+// ###unused: const money2 = require("./app/money2-crawler.js")
+
+// ###unused: const observations = require("./app/controllers/observations.js");
+// ###unused: const status = require("./app/status.js");
+// ###unused: const RoiController = require("./app/controllers/rois-controller.js")
 
 //-----------------temp
 

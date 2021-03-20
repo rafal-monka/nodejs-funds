@@ -1,8 +1,8 @@
 const fs = require('fs')
 const jsonexport = require('jsonexport')
-const email = require("./../email")
+const email = require("../libs/email")
 
-const Launcher = require("./../launcher.js")
+const Launcher = require("../libs/launcher.js")
 const TFI = require('./../../config/TFI')
 const robot = require("./../robot.js")
 
@@ -100,7 +100,7 @@ exports._launchPickOccasion = (wssClientID, symbols, mode, req) => {
         //finalCallBack
         (result) => {         
             console.log('_launchPickOccasion final') 
-            console.log(result)
+            //console.log(result)
             if (mode === 'R' && req !== null) {
                 email.sendEmail(' Funds (Occasions) '+new Date(),                             
                                 '<a href="'+req.protocol + '://' + req.get('host')+'/occasion/preview/R/*">Show occasions panel</a>'

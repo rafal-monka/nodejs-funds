@@ -9,7 +9,7 @@ router.get('/metadata/:symbol', TFIController.getMetadata)
 router.get('/look/:symbol', TFIController.getLook)
 router.get('/delete/:symbol', TFIController.daleteValues)
 router.get('/load/:symbols', TFIController.loadTFIValues)
-router.get('/loadmybonds', TFIController.loadMyBondTFIValues)
+//router.get('/loadmybonds', TFIController.loadMyBondTFIValues)
 router.get('/copy/:symbolfrom/:symbolto', TFIController.copyValues)
 router.get('/export/:symbols', TFIController.getExport)
 

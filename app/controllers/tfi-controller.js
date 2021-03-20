@@ -1,11 +1,10 @@
-const email = require("./../email")
-const Launcher = require("./../launcher.js")
+const email = require("../libs/email")
+const Launcher = require("../libs/launcher.js")
 const TFI = require('./../../config/TFI.js')
 const TFIValues = require('./../models/tfi-values-model')
 const Funds = require('./../models/funds-model')
 const TFIMetaData = require('./../models/tfi-metadata-model')
 const TFILook = require('./../models/tfi-look-model')
-const moneyValueLoader = require("./../money-values-loader.js")
 const bankierLoader = require("../bankier-values-loader.js")
 const analizyLoader = require("../analizy-values-loader.js")
 const wss = require('./../../wss')
@@ -149,13 +148,6 @@ exports.daleteValues = (req, res, next) => {
     res.status(200).json('Deleting...'+req.params.symbol)    
 }
 
-exports.loadMyBondTFIValues = (req, res, next) => {
-    console.log('TFI.myBondTFISymbols', TFI.myBondTFISymbols)  
-    req.params.symbols = TFI.myBondTFISymbols.split(",")
-    this.loadTFIValues(req, res, next)     
-    res.json('Loading started for '+TFI.myBondTFISymbols)
-}
-
 exports.loadTFIValues = (req, res, next) => {
     // console.log('loadTFIValues', req.params.symbols)
     let symbols = []
@@ -264,10 +256,6 @@ exports.getValues = (req, res, next) => {
         .catch (next) 
 }
 
-// exports.loadValues = (wssClientID, symbols) => { 
-//     launchLoadValues(wssClientID, new Date(), symbols)
-// }
-
 exports.notifyClient = (wssClientID, event, symbol, data) => {
     //console.log(new Date(), 'notifyClient', event, symbol, data.status)
     let response = { 
@@ -371,60 +359,73 @@ exports._launchTag = (wssClientID, symbols, tag) => {
 
 
 
-
 //--------------------------------temp
-exports.tempAddFieldSourceOLD = () => {
-    console.log('tempAddFieldSource')
-    TFIMetaData.updateMany( {} ,
-        { $set: { source: 'MONEY'} },
-        function(err, result) {}
-    )
-    TFIMetaData.find( { symbol: 'TFI8172'} ).then(function (result) {
-        console.log('count', result.length)            
-    }) 
-}
+// exports.tempAddFieldSourceOLD = () => {
+//     console.log('tempAddFieldSource')
+//     TFIMetaData.updateMany( {} ,
+//         { $set: { source: 'MONEY'} },
+//         function(err, result) {}
+//     )
+//     TFIMetaData.find( { symbol: 'TFI8172'} ).then(function (result) {
+//         console.log('count', result.length)            
+//     }) 
+// }
+
 
 //--------------------------------old
-exports.calcLRURLOLD = async (req, res, next) => {  
-    TFIValues
-        .find({ symbol: req.params.symbol }) 
-        .then(function (result) {
-            let ordered = result
-                            .sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                            .map(val => [val.date.getTime(), val.value])
+//const moneyValueLoader = require("./../money-values-loader.js")
 
-            //
-            let avg = {
-                x: Math.round(ordered.reduce((total, item) => total+item[0], 0) / ordered.length * 100) / 100,
-                y: Math.round(ordered.reduce((total, item) => total+item[1], 0) / ordered.length * 100) / 100
-            }
-            let sumCounter = ordered.reduce((total, item) => total + (item[0] - avg.x)*(item[1] - avg.y), 0)
-            let sumDenominator = ordered.reduce((total, item) => total + Math.pow( (item[0] - avg.x), 2), 0)
-            let a = sumCounter / sumDenominator
-            let lr = {
-                a: a,
-                b: avg.y - a * avg.x
-            }
-            TFIMetaDataCtrl.update( req.params.symbol, {
-                lra: lr.a,
-                lrb: lr.b,
-                updated_at: new Date()
-            }) 
-            res.json(lr)
-        })
+// exports.loadMyBondTFIValues = (req, res, next) => {
+//     console.log('TFI.myBondTFISymbols', TFI.myBondTFISymbols)  
+//     req.params.symbols = TFI.myBondTFISymbols.split(",")
+//     this.loadTFIValues(req, res, next)     
+//     res.json('Loading started for '+TFI.myBondTFISymbols)
+// }
 
-    //res.json('calcLR')
-}
+// exports.loadValues = (wssClientID, symbols) => { 
+//     launchLoadValues(wssClientID, new Date(), symbols)
+// }
 
-exports.notifyClientOLD = (wssClientID, response) => {
-    wss.notifyClient(wssClientID, response) 
-}
+// exports.calcLRURLOLD = async (req, res, next) => {  
+//     TFIValues
+//         .find({ symbol: req.params.symbol }) 
+//         .then(function (result) {
+//             let ordered = result
+//                             .sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+//                             .map(val => [val.date.getTime(), val.value])
 
-exports.notifyErrorOLD = (wssClientID, event, error) => {
-    //wss
-    let response = { 
-        event: event,
-        payload: error
-    } 
-    wss.notifyClient(wssClientID, response)  
-}
+//             //
+//             let avg = {
+//                 x: Math.round(ordered.reduce((total, item) => total+item[0], 0) / ordered.length * 100) / 100,
+//                 y: Math.round(ordered.reduce((total, item) => total+item[1], 0) / ordered.length * 100) / 100
+//             }
+//             let sumCounter = ordered.reduce((total, item) => total + (item[0] - avg.x)*(item[1] - avg.y), 0)
+//             let sumDenominator = ordered.reduce((total, item) => total + Math.pow( (item[0] - avg.x), 2), 0)
+//             let a = sumCounter / sumDenominator
+//             let lr = {
+//                 a: a,
+//                 b: avg.y - a * avg.x
+//             }
+//             TFIMetaDataCtrl.update( req.params.symbol, {
+//                 lra: lr.a,
+//                 lrb: lr.b,
+//                 updated_at: new Date()
+//             }) 
+//             res.json(lr)
+//         })
+
+//     //res.json('calcLR')
+// }
+
+// exports.notifyClientOLD = (wssClientID, response) => {
+//     wss.notifyClient(wssClientID, response) 
+// }
+
+// exports.notifyErrorOLD = (wssClientID, event, error) => {
+//     //wss
+//     let response = { 
+//         event: event,
+//         payload: error
+//     } 
+//     wss.notifyClient(wssClientID, response)  
+// }

@@ -1,6 +1,7 @@
 .env
 node_modules/
 download/
+unused/
 
 fund_values_import.xlsx
 ~$fund_values_import.xlsx

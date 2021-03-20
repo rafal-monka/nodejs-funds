@@ -1,12 +1,14 @@
-const utils = require("../utils.js")
-const UnitsPurchaseCtrl = require('./units/purchase')
-const UnitsRedemptionCtrl = require('./units/redemption')
-const LineOfDefenceCtrl = require('./line-of-defence-controller')
+const utils = require("../libs/utils.js")
+
 const UnitPurchase = require('./../models/unit-purchase-model')
 const UnitRedemption = require('./../models/unit-redemption-model')
 const UnitRegister = require('./../models/unit-register-model')
 const TFIValues = require('./../models/tfi-values-model')
 const TFIMetaData = require('./../models/tfi-metadata-model')
+
+const UnitsPurchaseCtrl = require('./units/purchase')
+const UnitsRedemptionCtrl = require('./units/redemption')
+const LineOfDefenceCtrl = require('./line-of-defence-controller')
 
 //internal function to register new purchase
 async function _purchase(purchase) {
