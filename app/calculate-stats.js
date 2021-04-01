@@ -12,7 +12,7 @@ exports.calcStats = (symbol) => {
     let query = { $or: symbols, date: {$gte: CONST_MIN_DATE } }
 
     return new Promise(function(resolve, reject) {
-        resolve('TEST...'+JSON.stringify(query))
+        resolve('TESTing...'+JSON.stringify(query))
     })
 
     return new Promise(function(resolve, reject) {

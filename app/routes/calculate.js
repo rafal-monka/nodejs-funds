@@ -4,7 +4,7 @@ const CalculateStatsCtrl = require('../controllers/calculate-stats-controller.js
 
 router.get('/launch/:symbols', CalculateStatsCtrl.launchCalcStats)
 
-router.get('/test', CalculateStatsCtrl.testAllocation)
+router.get('/test-allocation', CalculateStatsCtrl.testAllocation)
 
 
 module.exports = router

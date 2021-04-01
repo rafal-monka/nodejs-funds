@@ -6,7 +6,8 @@ const express = require("express")
 const cors = require('cors')
 const bodyParser = require("body-parser");
 const path = require('path')
-const initMongoDatabase = require('./config/database')
+const initMongoDatabase = require('./config/mongo-database')
+const mySQLDatabase = require("./config/mysql-database")
 const wss = require('./wss')
 const aol = require("./app/analizyonline-crawler.js")
 const storage = require('./app/fund-storage')
@@ -56,6 +57,13 @@ var server = app.listen(PORT, () => {
 //init Mongo database
 initMongoDatabase()
 
+//init mySQL
+mySQLDatabase.sequelize.sync( /* { force: true } */ ) //!!! In development, you may need to drop existing tables and re-sync database.
+.then( () => {
+    console.log('Connected to mySQL database', process.env.DATABASE_MYSQL_DB)
+}).catch(e => {
+    console.log('Error connecting to mySQL database', process.env.DATABASE_MYSQL_DB, e.toString())
+})
 // mojefundusze.perform() 
 // aol.perform()
 

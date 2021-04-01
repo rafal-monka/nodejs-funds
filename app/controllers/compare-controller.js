@@ -157,3 +157,152 @@ function calcMonthlyValues(query, period) {
 }
 
 
+exports.getDaysOfMonthChanges = (req, res, next) => {
+    let symbols = req.params.symbols.split(',').map(item => {return {symbol: item}})
+    let minDate = new Date(req.params.date)
+    let query = { $or: symbols, date: {$gte: minDate } }
+
+    calcDaysOfMonthChanges(query)
+        .then(output => {
+            res.status(200).json(output)
+        })
+        .catch (next)
+}
+
+function calcDaysOfMonthChanges(query) {
+    return new Promise(function(resolve, reject) {
+        TFIValues.find( query ) 
+            .sort( {symbol: 1, date: 1})
+            .then(function (result) {
+                //console.log(result.length) 
+
+                try {
+                    let groupedArr = groupValuesByFund(result)
+
+                    //grouped series by month and day day of month
+                    let daysOfMonth = []
+                    for (var f=0; f<groupedArr.length; f++) {
+                                                
+                        //iterate days
+                        let previous
+                        let current
+                        let cum
+                        if (true) groupedArr[f].data.forEach((day, inx) => {
+// console.log(inx, day[0])
+                            if (inx === 0) { 
+                                daysOfMonth.push({
+                                    name: groupedArr[f].symbol+'/'+day[0].getFullYear()+'-'+(day[0].getMonth()+1),
+                                    data: [
+                                        [day[0].getDate(), day[1]]
+                                    ]                                     
+                                })
+                                cum = day[1]
+                                previous = day[0]
+                            } else {
+                                current = day[0]
+// console.log(inx, previous, current)
+                                let change = current.getMonth() !== previous.getMonth()
+// console.log(groupedArr[f].symbol, current, previous, current.getMonth() !== previous.getMonth())
+                                //if changes of month
+                                if (change) {
+                                    daysOfMonth.push({
+                                        name: groupedArr[f].symbol+'/'+current.getFullYear()+'-'+(current.getMonth()+1),
+                                        data: [
+                                            [day[0].getDate(), day[1]]
+                                        ]                                       
+                                    })  
+                                    cum = day[1]                                 
+                                } else {
+                                    cum += day[1] 
+                                    daysOfMonth[daysOfMonth.length-1].data.push(
+                                        [day[0].getDate(), Math.round(cum* 100)/100] 
+                                    )
+                                }
+                                previous = current
+                            }
+                        })                                        
+                    }
+
+                    //grouped series only by day of month (average)
+                    let dataAvgMinMax = []
+                    groupedArr.forEach(fund => {
+                        let dataAvg = new Array(31).fill(0)
+                        let dataMin = new Array(31).fill(null)
+                        let dataMax = new Array(31).fill(null)
+                        let dataAvgCount = new Array(31).fill(0)
+     
+                        for (var d=0; d<fund.data.length; d++) {
+                            let day = fund.data[d][0].getDate()
+                            dataAvg[day] += fund.data[d][1]
+                            dataMin[day] = ((fund.data[d][1] < dataMin[day] || dataMin[day] === null) ? fund.data[d][1] : dataMin[day])
+                            dataMax[day] = ((fund.data[d][1] > dataMax[day] || dataMax[day] === null) ? fund.data[d][1] : dataMax[day])
+                            dataAvgCount[day] += 1
+                        }
+
+                        for (var d=0; d<dataAvg.length; d++) {
+                            dataAvg[d] = [d, Math.round( (dataAvgCount[d] > 0 ? dataAvg[d] / dataAvgCount[d] : null) * 100)/100 ]
+                            dataMin[d] = [d, Math.round(dataMin[d]* 100)/100 ]
+                            dataMax[d] = [d, Math.round(dataMax[d]* 100)/100]
+                        }
+
+                        dataAvg = dataAvg.slice(1)
+                        dataMin = dataMin.slice(1)
+                        dataMax = dataMax.slice(1)
+                        dataAvgMinMax.push({
+                            name: fund.symbol+'-AVG',
+                            data: dataAvg
+                        })
+                        dataAvgMinMax.push({
+                            name: fund.symbol+'-MIN',
+                            data: dataMin
+                        })
+                        dataAvgMinMax.push({
+                            name: fund.symbol+'-MAX',
+                            data: dataMax
+                        })
+                    })
+                    
+
+                    resolve({
+                        dataAvgMinMax: dataAvgMinMax,
+                        groupedArr: groupedArr,
+                        daysOfMonth: daysOfMonth,
+                        daysOfMonthAMM: dataAvgMinMax
+                    })
+                } catch (e) {
+                    reject(e.toString())
+                }
+            })
+            .catch(e => {
+                reject(e.toString())
+            })
+        })
+}
+
+function groupValuesByFund(inArr) {
+    let arr = []
+    inArr.forEach(item => {
+        if (arr[item.symbol] === undefined) arr[item.symbol] = {symbol: item.symbol, data: []}        
+        arr[item.symbol].data.push([
+            new Date(item.date),
+            item.value              
+        ])
+    })
+
+    let fundData = []
+    Object.getOwnPropertyNames(arr).map((item, index) => {
+        if (index>0) {
+            let dataArr = arr[item].data
+            fundData.push({
+                symbol: arr[item].symbol, 
+                data: dataArr.map( (item, index) => [
+                    item[0],
+                    // item[1], 
+                    // index === 0 ? 0.0 : dataArr[index-1][1],
+                    index === 0 ? 0.0 : Math.round( (item[1] - dataArr[index-1][1])/dataArr[index-1][1] * 100 * 100)/100
+                ])
+            })
+        }
+    })
+    return fundData
+}

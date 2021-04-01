@@ -67,8 +67,6 @@ exports._launchCalcStats = (wssClientID, symbols) => {
 
 
 
-
-
 exports.testAllocation = (req, res, next) => {
     let arr = [0,10,20,30,40,50,60,70,80,90,100]
     let amount = Math.max(...arr)
