@@ -11,7 +11,6 @@ const mySQLDatabase = require("./config/mysql-database")
 const wss = require('./wss')
 const aol = require("./app/analizyonline-crawler.js")
 const storage = require('./app/fund-storage')
-
 const app = express();
 
 app.use(cors())
@@ -64,6 +63,9 @@ mySQLDatabase.sequelize.sync( /* { force: true } */ ) //!!! In development, you 
 }).catch(e => {
     console.log('Error connecting to mySQL database', process.env.DATABASE_MYSQL_DB, e.toString())
 })
+
+
+
 // mojefundusze.perform() 
 // aol.perform()
 

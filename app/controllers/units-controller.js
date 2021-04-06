@@ -147,12 +147,12 @@ exports.getRegister = async (req, res, next) => {
     })
 
     //unique symbols
-    let unique_registers = [...new Set(registers.map(reg => reg.symbol))].sort((a,b)=>a > b ? 1 : -1)
+    let unique_registers = [...new Set(registers.map(reg => reg.symbol))].sort((a,b)=>a > b ? 1 : -1) //temp: [...new Set( ['ING04'] )] 
     let query_symbols = unique_registers.map(item => {return {symbol: item}})
 
     //add class info (A, B, C) to unique_registers beside symbol
     let metadata = await TFIMetaData.find({$or: query_symbols})
-    unique_registers = unique_registers.map(symbol => {
+    let unique_registers_full = unique_registers.map(symbol => {
         let tfi = metadata.find(item => item.symbol === symbol)
         return {
           symbol: tfi.symbol,
@@ -167,10 +167,10 @@ exports.getRegister = async (req, res, next) => {
         let chartSeries = []
 
         let minDateForAll = registers.reduce((minDate, reg) => Math.min(minDate, reg.date), new Date())
-        let valuesAll = await TFIValues.find({$or: query_symbols, date: {$gte: new Date(minDateForAll), $lte: new Date(onDate)}}).sort({date: 1})
+        let valuesAll = await TFIValues.find({symbol: {$in: unique_registers/*$or: querySymbols*/}  /*$or: query_symbols*/, date: {$gte: new Date(minDateForAll), $lte: new Date(onDate)}}).sort({date: 1})
 
-        for (let ur=0; ur<unique_registers.length; ur++) {
-            let symbol = unique_registers[ur].symbol
+        for (let ur=0; ur<unique_registers_full.length; ur++) {
+            let symbol = unique_registers_full[ur].symbol
             let register = registers.filter(register => register.symbol === symbol)        
             //let minDate = register.reduce((minDate, reg) => Math.min(minDate, reg.date), new Date())
  
@@ -185,7 +185,7 @@ exports.getRegister = async (req, res, next) => {
                     if (ok===false) throw Error('Error between prices '+(new Date(reg.date))+' '+symbol+' '+reg.price+'<>'+value.value)
                     return {
                         symbol: symbol,
-                        fundClass: unique_registers[ur].fundClass,
+                        fundClass: unique_registers_full[ur].fundClass,
                         date: value.date,
                         value: value.value,
                         capital: Math.round( reg.units*reg.price *100)/100,
@@ -206,8 +206,8 @@ exports.getRegister = async (req, res, next) => {
                     his.value
                 ])
                 chart = {
-                    name: symbol+' '+unique_registers[ur].name,
-                    fundClass: unique_registers[ur].fundClass,
+                    name: symbol+' '+unique_registers_full[ur].name,
+                    fundClass: unique_registers_full[ur].fundClass,
                     marker: {enabled: false, symbol: "circle"},
                     data: chartData,
                     //negativeColor:' red',
@@ -224,13 +224,13 @@ exports.getRegister = async (req, res, next) => {
                         last = invh
                         inv_history_grouped.push(last)
                     } else {
-                        if (ifPeriodChanged(period, invh.date, last.date) && index !== inv_history.length-1) { //new Date(last.date).getTime() !== new Date(inv_history_grouped[inv_history_grouped.length-1].date).getTime()
+                        if (ifPeriodChanged(period, invh.date, last.date) /*&& index !== inv_history.length-1*/) { 
                             inv_history_grouped.push(last)
+                        }
+                        if (index === inv_history.length-1) {
+                            inv_history_grouped.push(invh)
                         }
                         last = invh
-                        if (index === inv_history.length-1) {
-                            inv_history_grouped.push(last)
-                        }
                     }                    
                 })
                 inv_history_grouped = inv_history_grouped.map((item, index) => {
@@ -261,7 +261,7 @@ exports.getRegister = async (req, res, next) => {
                 })
                 groupedArr.push({
                     symbol: inv.symbol,
-                    fundClass: unique_registers[ur].fundClass,
+                    fundClass: unique_registers_full[ur].fundClass,
                     date: '9999-12-31',
                     value: 0.0,
                     interests: 0.0,
@@ -276,12 +276,12 @@ exports.getRegister = async (req, res, next) => {
         }
 
         //line od defence
-        let lineOfDefence = LineOfDefenceCtrl.getArr(valuesAll, unique_registers)
+        let lineOfDefence = LineOfDefenceCtrl.getArr(valuesAll, unique_registers_full)
 
         //return result 
         res.json({
             status: 'OK',
-            unique_registers: unique_registers,
+            unique_registers: unique_registers_full,
             metadata: metadata,
             registers: registers,
             onDate: onDate,
@@ -297,6 +297,49 @@ exports.getRegister = async (req, res, next) => {
     }
     //console.log('outArr', outArr.length)
 
+
+}
+
+
+exports.getFullRegister = async (req, res, next) => {
+    let onDate = req.params.date === "*" ? new Date() : req.params.date
+    let period = req.params.period
+        
+    let _time = new Date()
+    //read from db
+    let registersActive = await UnitRegister.find({ 
+        fromDate: {$lte: onDate},
+        toDate: {$gt: onDate}
+    })
+
+    //unique symbols
+    let uniqueRegisters = [...new Set(registersActive.map(reg => reg.symbol))].sort((a,b)=>a > b ? 1 : -1) //temp: [...new Set( ['ING04'] )] 
+    let querySymbols = uniqueRegisters.map(item => {return {symbol: item}})
+    
+    //add class info (A, B, C) to unique_registers beside symbol
+    let metadata = await TFIMetaData.find({$or: querySymbols})
+
+    let uniqueRegistersExt = uniqueRegisters.map(symbol => {
+        let tfi = metadata.find(item => item.symbol === symbol)
+        return {
+            symbol: tfi.symbol,
+            name: tfi.name,
+            type: tfi.type,
+            fundClass: tfi.class
+        }
+    })
+    
+    let minDateForAll = registersActive.reduce((minDate, reg) => Math.min(minDate, reg.date), new Date())
+    
+    let valuesAll = await TFIValues.find({symbol: {$in: uniqueRegisters/*$or: querySymbols*/}, date: {$gte: new Date(minDateForAll), $lte: new Date(onDate)}}).sort({date: 1})
+
+    console.log(new Date() - _time, 'time')
+    res.json({
+        uniqueRegisters: uniqueRegisters,
+        registersActive: registersActive,
+        minDateForAll: minDateForAll,
+        valuesAll: valuesAll.length
+    })
 
 }
 
