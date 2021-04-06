@@ -12,7 +12,7 @@ router.get('/covid-vaccine/:date_to/:patient_id/:x_csrf_token', (req, res, next)
     //schedule
     cronParams = "*/10 6-21 * * 0-6" 
     console.log('schedule IKPCovidVaccine', new Date(), cronParams)
-    schedule.scheduleJob(cronParams, function(){ 
+    if (false) schedule.scheduleJob(cronParams, function(){ 
         console.log('IKPCovidVaccine...')
         ikp.IKPFindVaccine(req.params.date_to, req.params.patient_id, req.params.x_csrf_token).then(response => {
             ikp.IKPSendEmail(response)
