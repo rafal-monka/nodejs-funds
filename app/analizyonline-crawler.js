@@ -56,32 +56,19 @@ exports.perform = async (req) => {
                     .sort({date: -1, symbol: 1}) 
                     .limit(arr.length*3) //last bulk 
                     .then(function (result) {
-                        //console.log(result.length)
-                        let tmpFunds = []
-                        arr.forEach(res => {
-                            tmpFunds[res.symbol] = 0                        
-                        }) 
-
-                        let result2 = []
-                        result.forEach(res => {
-                            tmpFunds[res.symbol] += 1
-                            if (tmpFunds[res.symbol] <= 2) {
-                                result2.push(res)
-                            }
-                        }) 
-                        result2 = result2.sort((a,b) => a.symbol === b.symbol ? new Date(a.date) < new Date(b.date) ? 1 : -1 : a.symbol > b.symbol ? 1 : -1)
-
-                        //console.log('result2', result2)
-                        let changes = result2
-                            .filter((item, index) => index % 2 ===0)
-                            .map((item, index) => {
-                                return {
-                                    symbol: item.symbol,
-                                    date: item.date,
-                                    change: Math.round( ((item.value - result2[index*2+1].value) / result2[index*2+1].value * 100) * 100)/100,
-                                }
+                        //result = result.filter(res => res.symbol = 'ALL14').limit
+                        let changes = []
+                        dictionary.forEach(fund => {
+                            let lastTwo = result.filter(res => res.symbol === fund.symbol).sort((a,b) => new Date(a.date) < new Date(b.date)).slice(0,2)
+                            changes.push({
+                                symbol: fund.symbol,
+                                date: lastTwo[0].date,
+                                //tmp0: lastTwo[0],
+                                //tmp1: lastTwo[1],
+                                change: Math.round( ((lastTwo[0].value - lastTwo[1].value) / lastTwo[1].value * 100) * 100)/100,
                             })
-                        
+                        })
+                        //console.log(changes)                       
 
                         arr = arr.map((a,i)=> {
                             let change = changes.filter(ch => ch.symbol === a.symbol)
@@ -96,8 +83,7 @@ exports.perform = async (req) => {
                             if (new Date(change[0].date).getTime() !== new Date(a.date).getTime()) {
                                 position.msg = 'Check dates ['+new Date(change[0].date).toISOString().substring(0,10)+'] ['+a.date+']'
                             }
-                            return position 
-                            
+                            return position                             
                         })
                         //console.log(arr)
                         //email
@@ -160,8 +146,32 @@ parseFund = (item, html) => {
 
 
 
+//-------------------------------------------------------- temp
 
+// let tmpFunds = []
+// arr.forEach(res => {
+//     tmpFunds[res.symbol] = 0                        
+// }) 
 
+// let result2 = []
+// result.forEach(res => {
+//     tmpFunds[res.symbol] += 1
+//     if (tmpFunds[res.symbol] <= 2) {
+//         result2.push(res)
+//     }
+// }) 
+// result2 = result2.sort((a,b) => a.symbol === b.symbol ? new Date(a.date) < new Date(b.date) ? 1 : -1 : a.symbol > b.symbol ? 1 : -1)
+
+// console.log('result2.symbol', result2[0].symbol)
+// let changes = result2
+//     .filter((item, index) => index % 2 === 0)
+//     .map((item, index) => {
+//         return {
+//             symbol: item.symbol,
+//             date: item.date,
+//             change: Math.round( ((item.value - result2[index*2+1].value) / result2[index*2+1].value * 100) * 100)/100,
+//         }
+//     })
 
 //----------------
 // if (el.item.startValue > 0) {
