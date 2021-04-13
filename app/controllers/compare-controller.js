@@ -4,10 +4,11 @@ const TFIValues = require('../models/tfi-values-model')
 const CONST_DAY_MILLS = 1000*60*60*24
 
 exports.getMonthlyValues = (req, res, next) => {  
-    let symbols = req.params.symbols.split(',').map(item => {return {symbol: item}})
+    let symbols = req.params.symbols.split(',')//.map(item => {return {symbol: item}})
     let minDate = new Date(req.params.date)
     let period = req.params.period.toUpperCase()
-    let query = { $or: symbols, date: {$gte: minDate } }
+    //let query = { $or: symbols, date: {$gte: minDate } }
+    let query = {symbol: {$in: symbols}, date: {$gte: minDate } }
 
 //console.log(query)
 
@@ -158,9 +159,10 @@ function calcMonthlyValues(query, period) {
 
 
 exports.getDaysOfMonthChanges = (req, res, next) => {
-    let symbols = req.params.symbols.split(',').map(item => {return {symbol: item}})
+    let symbols = req.params.symbols.split(',')//.map(item => {return {symbol: item}})
     let minDate = new Date(req.params.date)
-    let query = { $or: symbols, date: {$gte: minDate } }
+    //let query = { $or: symbols, date: {$gte: minDate } }
+    let query = {symbol: {$in: symbols}, date: {$gte: minDate } }
 
     calcDaysOfMonthChanges(query)
         .then(output => {
@@ -225,14 +227,15 @@ function calcDaysOfMonthChanges(query) {
 
                     //grouped series only by day of month (average)
                     let dataAvgMinMax = []
+                    const CONST_GROUP = 31 //6 - day of week OR 31 - day of month
                     groupedArr.forEach(fund => {
-                        let dataAvg = new Array(31).fill(0)
-                        let dataMin = new Array(31).fill(null)
-                        let dataMax = new Array(31).fill(null)
-                        let dataAvgCount = new Array(31).fill(0)
+                        let dataAvg = new Array(CONST_GROUP).fill(0)
+                        let dataMin = new Array(CONST_GROUP).fill(null)
+                        let dataMax = new Array(CONST_GROUP).fill(null)
+                        let dataAvgCount = new Array(CONST_GROUP).fill(0)
      
                         for (var d=0; d<fund.data.length; d++) {
-                            let day = fund.data[d][0].getDate()
+                            let day = fund.data[d][0].getDate()//Day()//OR .getDate()
                             dataAvg[day] += fund.data[d][1]
                             dataMin[day] = ((fund.data[d][1] < dataMin[day] || dataMin[day] === null) ? fund.data[d][1] : dataMin[day])
                             dataMax[day] = ((fund.data[d][1] > dataMax[day] || dataMax[day] === null) ? fund.data[d][1] : dataMax[day])
@@ -263,8 +266,24 @@ function calcDaysOfMonthChanges(query) {
                     })
                     
 
+                    //data by days of week / month
+                    let dataByDays = []
+                    groupedArr.forEach((fund, index) => {
+                        dataByDays.push({
+                            name: fund.symbol,
+                            data: 
+                                fund.data.map((day, inx) => {
+                                    return [
+                                        day[0].getDate(),
+                                        day[1]
+                                    ]
+                                })
+                        })
+                    })
+
                     resolve({
                         dataAvgMinMax: dataAvgMinMax,
+                        dataByDays: dataByDays, 
                         groupedArr: groupedArr,
                         daysOfMonth: daysOfMonth,
                         daysOfMonthAMM: dataAvgMinMax

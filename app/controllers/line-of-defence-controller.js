@@ -5,8 +5,10 @@ const CONST_LO_LIMIT_B = -3.5
 const CONST_LO_LIMIT_C = -7
 const CONST_LO_LAST_PERIOD = 90*24*60*60*1000
 
+const SCALE_PIXS = 500
+
 scaledValue = (value, min, max) => {
-    return Math.round( (500 / (max-min)) * (value - min) ) 
+    return Math.round( (SCALE_PIXS / (max-min)) * (value - min) ) 
 }
 
 exports.getArr = (values, unique_registers) => {

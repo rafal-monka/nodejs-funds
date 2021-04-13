@@ -151,7 +151,7 @@ exports.getRegister = async (req, res, next) => {
     let query_symbols = unique_registers.map(item => {return {symbol: item}})
 
     //add class info (A, B, C) to unique_registers beside symbol
-    let metadata = await TFIMetaData.find({$or: query_symbols})
+    let metadata = await TFIMetaData.find({symbol: {$in: unique_registers/*$or: querySymbols*/}})
     let unique_registers_full = unique_registers.map(symbol => {
         let tfi = metadata.find(item => item.symbol === symbol)
         return {
@@ -303,8 +303,7 @@ exports.getRegister = async (req, res, next) => {
 
 exports.getFullRegister = async (req, res, next) => {
     let onDate = req.params.date === "*" ? new Date() : req.params.date
-    let period = req.params.period
-        
+
     let _time = new Date()
     //read from db
     let registersActive = await UnitRegister.find({ 
@@ -314,10 +313,9 @@ exports.getFullRegister = async (req, res, next) => {
 
     //unique symbols
     let uniqueRegisters = [...new Set(registersActive.map(reg => reg.symbol))].sort((a,b)=>a > b ? 1 : -1) //temp: [...new Set( ['ING04'] )] 
-    let querySymbols = uniqueRegisters.map(item => {return {symbol: item}})
     
     //add class info (A, B, C) to unique_registers beside symbol
-    let metadata = await TFIMetaData.find({$or: querySymbols})
+    let metadata = await TFIMetaData.find({symbol: {$in: uniqueRegisters/*$or: querySymbols*/}})
 
     let uniqueRegistersExt = uniqueRegisters.map(symbol => {
         let tfi = metadata.find(item => item.symbol === symbol)
@@ -329,20 +327,32 @@ exports.getFullRegister = async (req, res, next) => {
         }
     })
     
-    let minDateForAll = registersActive.reduce((minDate, reg) => Math.min(minDate, reg.date), new Date())
-    
-    let valuesAll = await TFIValues.find({symbol: {$in: uniqueRegisters/*$or: querySymbols*/}, date: {$gte: new Date(minDateForAll), $lte: new Date(onDate)}}).sort({date: 1})
+    //minimum date for all symbols (in order to make only one db query)
+    let minDateForAll = registersActive.reduce((minDate, reg) => Math.min(minDate, reg.date), new Date())    
+    //console.log(new Date() - _time, 'time1')
+    let valuesAll = await TFIValues
+        .find({
+            symbol: {$in: uniqueRegisters/*$or: querySymbols*/}, 
+            date: {$gte: new Date(minDateForAll), $lte: new Date(onDate)}
+        })
+        .sort({date: 1})
 
-    console.log(new Date() - _time, 'time')
+    //console.log(new Date() - _time, 'time2')
     res.json({
-        uniqueRegisters: uniqueRegisters,
-        registersActive: registersActive,
+        uniqueRegistersExt: uniqueRegistersExt,
+        registersActive: registersActive.map(reg => ({
+            ...reg._doc,
+            fname: '###TODO',
+            valn: '###TODO'
+        })),
         minDateForAll: minDateForAll,
         valuesAll: valuesAll.length
     })
 
 }
 
+
+//------------------------------------------------------temp
 
 exports.clearAll = async (req, res, next) => {
     UnitPurchase.deleteMany({}, async function(err, result) {})
@@ -398,3 +408,7 @@ exports.testRedeems = async (req, res, next) => {
 
     res.json( 'testRedeems()' )
 }
+
+//-------------------------------------------------------old
+// let querySymbols = uniqueRegisters.map(item => {return {symbol: item}})
+

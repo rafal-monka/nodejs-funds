@@ -8,7 +8,7 @@ router.post('/purchase', UnitsCtrl.purchaseUnits)
 router.post('/redeem', UnitsCtrl.redeemUnits)
 router.post('/rebuild-register', UnitsCtrl.rebuildRegister)
 router.get('/register/:period/:date', UnitsCtrl.getRegister)
-router.get('/register-full/:period/:date', UnitsCtrl.getFullRegister)
+router.get('/register-full/:date', UnitsCtrl.getFullRegister)
 router.put('/clear-all', UnitsCtrl.clearAll)
 
 router.post('/test-purchases', UnitsCtrl.testPurchases)
