@@ -225,7 +225,10 @@ function calcDaysOfMonthChanges(query) {
                         })                                        
                     }
 
-                    //grouped series only by day of month (average)
+                    //filter particular month
+                    //daysOfMonth = daysOfMonth.filter(item => item.name.indexOf('-4') >-1 )
+
+                    //grouped series only by day of week / month (average)
                     let dataAvgMinMax = []
                     const CONST_GROUP = 31 //6 - day of week OR 31 - day of month
                     groupedArr.forEach(fund => {

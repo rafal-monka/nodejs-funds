@@ -1,8 +1,6 @@
 const utils = require("./../libs/utils.js")
 
-const CONST_LO_LIMIT_A = -1
-const CONST_LO_LIMIT_B = -3.5
-const CONST_LO_LIMIT_C = -7
+const CONST_LO_LIMITS = [-1, -3, -4, -7, -5] /*A, A+, B, C, D */
 const CONST_LO_LAST_PERIOD = 90*24*60*60*1000
 
 const SCALE_PIXS = 500
@@ -82,9 +80,11 @@ exports.getArr = (values, unique_registers) => {
         
         let threshold
         switch (ur.fundClass) {
-            case 'A': threshold = CONST_LO_LIMIT_A; break;
-            case 'B': threshold = CONST_LO_LIMIT_B; break;
-            case 'C': threshold = CONST_LO_LIMIT_C; break;
+            case 'A': threshold = CONST_LO_LIMITS[0]; break;
+            case 'A+': threshold = CONST_LO_LIMITS[1]; break;
+            case 'B': threshold = CONST_LO_LIMITS[2]; break;
+            case 'C': threshold = CONST_LO_LIMITS[3]; break;
+            case 'D': threshold = CONST_LO_LIMITS[4]; break;
         }  
         let lo = Math.round( el.data[0].value * (100+threshold)/100 * 100)/100
 
