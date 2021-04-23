@@ -7,13 +7,51 @@
 const mySQLDatabase = require("./../../config/mysql-database")
 const TFIValues = require('./../models/tfi-values-model')
 const TimeSeries = mySQLDatabase.timeseries
+const ETFvalues = require('./../models/etf-values-model')
 
 const ETFEODLoader = require("../etf-eodhistoricaldata-values-loader.js")
 
 exports.test = (req, res, next) => {
-    let sample_etf = {symbol: 'SWDA.LSE'}
+    //let sample_etf = {symbol: 'SWDA.LSE'}
 
-    res.json([{a: 100}, {a:101}])
+    // TFIValues.deleteMany({symbol: { $in: [
+    //     "EMIM.LSE",
+    //     "EUNL.XETRA",
+    //     "IQQ0.XETRA",
+    //     "IS3N.XETRA",
+    //     "MINV.LSE",
+    //     "SWDA.LSE", "GSPC.INDX", "IXIC.INDX", "DJI.INDX"
+    // ]}, created_at: {$gte: new Date("2021-04-23")}}, function(err, result) { res.json('deleted')} )
+
+    // return
+    // TFIValues.find({symbol: { $in: [
+    //     "EMIM.LSE",
+    //     "EUNL.XETRA",
+    //     "IQQ0.XETRA",
+    //     "IS3N.XETRA",
+    //     "MINV.LSE",
+    //     "SWDA.LSE", "GSPC.INDX", "IXIC.INDX", "DJI.INDX"
+    // ]}}).sort({symbol: 1, date:1}).then(out => {
+    //     let a = [...new Set(out.map(i=>i.symbol))]
+    //     res.json(a)
+    // })
+    // return
+
+    // ETFvalues.find({}).sort({symbol: 1, date:1}).then(out => {
+    //     let a = [...new Set(out.map(i=>i.symbol))]
+    //     res.json(a)
+    // })
+
+    TFIValues.find({symbol: { $in: [
+            "EMIM.LSE",
+            "EUNL.XETRA",
+            "IQQ0.XETRA",
+            "IS3N.XETRA",
+            "MINV.LSE",
+            "SWDA.LSE", "GSPC.INDX", "IXIC.INDX", "DJI.INDX"]}, created_at: {$gte: new Date("2021-04-23")}}).sort({symbol: 1, date:1}).then(out => {
+        res.json(out)
+    })
+
     return
     ETFEODLoader.callFunction(sample_etf).then(result => {
         ETFEODLoader.callbackFunction(sample_etf, result)

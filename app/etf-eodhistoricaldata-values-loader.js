@@ -55,7 +55,7 @@ exports.callbackFunction = (etf, values)=> {
     //console.log(etf.symbol, 'etf-eodhistoricaldata-values-loader.callbackFunction', etf, values.data.length, values.data[0])
 
     TFIMetaDataCtrl.read(etf.symbol).then( res => {
-        res = { lastDate: null}
+        //res = { lastDate: null}
 
         //console.log('res', res)
         let arr = values.data
