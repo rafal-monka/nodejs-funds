@@ -165,13 +165,18 @@ exports.test = (req, res, next) => {
             }
         }
       
+        res.json({
+            lastData: lastData,
+            records: records
+        }) 
+        
         //INSERT    
         // let records = tfivalues.map(tv => ({
         //     symbol: tv.symbol,
         //     date: tv.date,
         //     value: tv.value
         // })) 
-        if (true) TimeSeries.bulkCreate(records)
+        if (false) TimeSeries.bulkCreate(records)
         .then(data => {
             console.log(symbol, category, (lastData.length === 0 ? 'no data' : lastData[0].dataValues.date), 'TimeSeries.bulkCreate', data.length)
             res.json({

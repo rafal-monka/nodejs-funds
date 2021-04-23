@@ -7,8 +7,10 @@ const TFIMetaData = require('./../models/tfi-metadata-model')
 const TFILook = require('./../models/tfi-look-model')
 const bankierLoader = require("../bankier-values-loader.js")
 const analizyLoader = require("../analizy-values-loader.js")
+const ETFEODLoader = require("../etf-eodhistoricaldata-values-loader.js")
 const wss = require('./../../wss')
 const { json } = require("express")
+const e = require("express")
 
 const CONST_COPY_MIN_DATE = new Date("2020-01-01")
 
@@ -148,19 +150,72 @@ exports.daleteValues = (req, res, next) => {
     res.status(200).json('Deleting...'+req.params.symbol)    
 }
 
+exports._launchLoadValues = (wssClientID, currentDate, symbols) => {
+    let count = [0, 0]
+    console.log(new Date(), 'tfi-controller._launchLoadValues', symbols)    
+    let timestampStart
+    this.currentDate = currentDate
+    let pad = new Launcher(
+        5, 
+        TFI.getList(symbols),//.slice(0,1), 
+        //callFunction,
+        (item)=>{ 
+            //console.log(new Date(), 'call item:', item.symbol)
+            switch (item.source.toUpperCase()) {
+                //OLD:case 'MONEY': return moneyValueLoader.callFunction(item); break;
+                case 'BANKIER': return bankierLoader.callFunction(item); break;
+                case 'ANALIZY': return analizyLoader.callFunction(item); break;
+                case 'ETFEOD': return ETFEODLoader.callFunction(item); break;                
+                default: console.log('Error callFunction. Item source '+item.source+' not supported') 
+            }
+        },
+        //callbackFunction,
+        (item, value)=>{ 
+            console.log(new Date(), 'callback item:', item.symbol)
+            switch (item.source.toUpperCase()) {
+                //OLD:case 'MONEY': count[0] += moneyValueLoader.callbackFunction(item, value); break;
+                case 'BANKIER': bankierLoader.callbackFunction(item, value); break;
+                case 'ANALIZY': analizyLoader.callbackFunction(item, value); break;
+                case 'ETFEOD': ETFEODLoader.callbackFunction(item, value); break;
+                default: console.log('Error callbackFunction. Item source '+item.source+' not supported') 
+            }
+        },        
+        //catchFunction
+        (error, item)=> {
+            console.log('Launcher catchFunction', error.toString().substring(0,100), item.symbol)
+            this.update(item.symbol, {                        
+                status: 'ERROR',
+                errorMsg: error.toString().substring(0,100)+(error.response?'\n'+error.response.data:'')
+            })
+        },
+        //finalCallBack
+        (param) => {         
+            let timestampEnd = new Date()
+            console.log('tfi-controller _launchLoadValues final', timestampStart, timestampEnd, param.length) 
+            if (false) email.sendEmail(' TFI/ETF values loaded '+new Date(), 
+                        '<div><pre>timeStart: '+timestampStart+', timeEnd:'+timestampEnd+', duration:'+(timestampEnd-timestampStart)/1000+'<br>'+JSON.stringify(count)+'</pre></div>'
+                           
+            )                                                     
+        } 
+    );
+    timestampStart = new Date()
+    pad.run();    
+}
+
 exports.loadTFIValues = (req, res, next) => {
     // console.log('loadTFIValues', req.params.symbols)
     let symbols = []
     if (req.params.symbols !== '*') {
         symbols = req.params.symbols.split(',') 
-        _launchLoadValues(0, new Date(), symbols)
+        this._launchLoadValues(0, new Date(), symbols)
         res.json('Loading started for '+symbols)
     } else {
         let query = {}
+        let self = this
         TFIMetaData.find(query).then(function (result) {
             let symbols = result.map(res => res.symbol)
-            res.status(200).json('Loading started for '+symbols) 
-            _launchLoadValues(99999, new Date(), symbols)           
+            self._launchLoadValues(99999, new Date(), symbols) 
+            res.status(200).json('Loading started for '+symbols)           
         })
     }          
 }
@@ -264,57 +319,6 @@ exports.notifyClient = (wssClientID, event, symbol, data) => {
         payload: data
     } 
     wss.notifyClient(wssClientID, response) 
-}
-
-
-exports._launchLoadValues = (wssClientID, currentDate, symbols) => {
-    let count = [0, 0]
-    console.log(new Date(), 'tfi-controller._launchLoadValues', symbols)    
-    let timestampStart
-    this.currentDate = currentDate
-    let pad = new Launcher(
-        5, 
-        TFI.getList(symbols),//.slice(0,1), 
-        //callFunction,
-        (item)=>{ 
-            //console.log(new Date(), 'call item:', item.symbol)
-            switch (item.source.toUpperCase()) {
-                //OLD:case 'MONEY': return moneyValueLoader.callFunction(item); break;
-                case 'BANKIER': return bankierLoader.callFunction(item); break;
-                case 'ANALIZY': return analizyLoader.callFunction(item); break;
-                default: console.log('Error callFunction. Item source '+item.source+' not supported') 
-            }
-        },
-        //callbackFunction,
-        (item, value)=>{ 
-            console.log(new Date(), 'callback item:', item.symbol)
-            switch (item.source.toUpperCase()) {
-                //OLD:case 'MONEY': count[0] += moneyValueLoader.callbackFunction(item, value); break;
-                case 'BANKIER': bankierLoader.callbackFunction(item, value); break;
-                case 'ANALIZY': analizyLoader.callbackFunction(item, value); break;
-                default: console.log('Error callbackFunction. Item source '+item.source+' not supported') 
-            }
-        },        
-        //catchFunction
-        (error, item)=> {
-            console.log('Launcher catchFunction', error.toString().substring(0,100), item.symbol)
-            this.update(item.symbol, {                        
-                status: 'ERROR',
-                errorMsg: error.toString().substring(0,100)
-            })
-        },
-        //finalCallBack
-        (param) => {         
-            let timestampEnd = new Date()
-            console.log('tfi-controller _launchLoadValues final', timestampStart, timestampEnd, param.length) 
-            if (true) email.sendEmail(' TFI values loaded '+new Date(), 
-                        '<div><pre>timeStart: '+timestampStart+', timeEnd:'+timestampEnd+', duration:'+(timestampEnd-timestampStart)/1000+'<br>'+JSON.stringify(count)+'</pre></div>'
-                           
-            )                                                     
-        } 
-    );
-    timestampStart = new Date()
-    pad.run();    
 }
 
 
