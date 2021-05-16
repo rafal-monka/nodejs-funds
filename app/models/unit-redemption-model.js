@@ -6,6 +6,7 @@ const unitRedemptionSchema = new mongoose.Schema({
     date: Date,
     units: Number,
     price: Number,
+    title: String,
     created_at: { type: Date, default: new Date() },
     updated_at: { type: Date, default: null }
 })

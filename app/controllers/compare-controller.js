@@ -230,7 +230,7 @@ function calcDaysOfMonthChanges(query) {
 
                     //grouped series only by day of week / month (average)
                     let dataAvgMinMax = []
-                    const CONST_GROUP = 6 //6 - day of week OR 31 - day of month
+                    const CONST_GROUP = 31 //6 - day of week OR 31 - day of month
                     groupedArr.forEach(fund => {
                         let dataAvg = new Array(CONST_GROUP).fill(0)
                         let dataMin = new Array(CONST_GROUP).fill(null)
@@ -238,7 +238,7 @@ function calcDaysOfMonthChanges(query) {
                         let dataAvgCount = new Array(CONST_GROUP).fill(0)
      
                         for (var d=0; d<fund.data.length; d++) {
-                            let day = fund.data[d][0].getDay() //OR .getDate() //Date(), //getDay() - day of month, //Date(), - day of week
+                            let day = fund.data[d][0].getDate() // .getDate() | .getDay() - day of month | day of week
                             dataAvg[day] += fund.data[d][1]
                             dataMin[day] = ((fund.data[d][1] < dataMin[day] || dataMin[day] === null) ? fund.data[d][1] : dataMin[day])
                             dataMax[day] = ((fund.data[d][1] > dataMax[day] || dataMax[day] === null) ? fund.data[d][1] : dataMax[day])

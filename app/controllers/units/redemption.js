@@ -8,7 +8,6 @@ const methods = [
     {name: 'HIFO', f: (a,b) => {return a.price > b.price ? -1 : 1}}
 ]
 
-
 function temp(symbol) {
     return new Promise((resolve, reject) => {
         TFIMetaData.find({symbol: symbol}, (err, res) => {
@@ -22,7 +21,7 @@ exports.processRedeem = async (redemption) => {
     
     //return new Promise(function(resolve, reject) {
         try {
-            console.log("purchase.processRedeem[1]")
+            //console.log("purchase.processRedeem[1]")
             let result = await Promise.all([
                 TFIMetaData.find({symbol: redemption.symbol}),
                 UnitRegister.find({symbol: redemption.symbol, status: 'A', date: {$lt: redemption.date}})
@@ -32,7 +31,7 @@ exports.processRedeem = async (redemption) => {
             // result[0] = await TFIMetaData.find({symbol: redemption.symbol})//.exec() //await temp(redemption.symbol) //
             // result[1] = await UnitRegister.find({symbol: redemption.symbol, status: 'A', date: {$lt: redemption.date}})//.exec() 
             // ])//.then(function (result) {
-                console.log("purchase.processRedeem[2]")
+                //console.log("purchase.processRedeem[2]")
                 //return
                 //console.log('result[0]', result[0])
                 //console.log(redemption.date, 'result[1]', result[1])

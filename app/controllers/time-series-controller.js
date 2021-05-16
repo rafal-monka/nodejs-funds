@@ -47,8 +47,12 @@ exports.changeHeatMap = (req, res, next) => {
     const CONST_LIMIT = 100000
 
     let dateFrom = req.params.date ? new Date(req.params.date) : new Date(new Date() - 1000*60*60*24 * 30)
-    let symbols = req.params.symbols.split(',').map(item => {return {symbol: item}})
-    let query = { $or: symbols, date: {$gte: dateFrom } }
+    let query = {
+        date: {$gte: dateFrom } 
+    }
+    if (req.params.symbols !== '*') {
+        query.symbol = {$in: req.params.symbols.split(',')} //.map(item => {return {symbol: item}})
+    }    
 
     //return
     TFIValues.find(query).sort({date:1}).limit(CONST_LIMIT).then(tfivalues => {
