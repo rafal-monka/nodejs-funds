@@ -128,13 +128,16 @@ parseFund = (item, html) => {
         let productValueSumUp = dom.getElementsByClassName('productValueSumUp')[0]
         let value = productValueSumUp.getElementsByClassName('productBigText')[0].innerHTML
         let date = productValueSumUp.getElementsByClassName('lightProductText')[0].innerHTML
-        // console.log(date.substring(0,2), date.substring(3,5), date.substring(6,10))
+        let title = dom.getElementsByClassName('productName')[0].textContent
         result = { 
-            title: dom.getElementsByClassName('productName')[0].innerHTML,
+            title: title.replace(new RegExp('\n', 'g'),'')
+                        .replace(new RegExp('use xlink:href="#star"/>','g'), '')
+                        .replace(new RegExp('&nbsp;','g'),'')
+                        .trim(),
             date: new Date(date.substring(6,10)+"-"+date.substring(3,5)+"-"+date.substring(0,2)),
             value: 1.0*value.replace(',','.').replace(' ','')
         }
-        // console.log('result', result)
+        //console.log('result', result)
         return result;        
 	} catch (e) {
         console.error(e);        
