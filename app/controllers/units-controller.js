@@ -143,7 +143,8 @@ exports.getRegister = async (req, res, next) => {
     //read from db
     let registers = await UnitRegister.find({ 
         fromDate: {$lte: onDate},
-        toDate: {$gt: onDate}
+        toDate: {$gt: onDate},
+        units: {$gt: 0.0} 
     })
 
     //unique symbols
@@ -338,13 +339,20 @@ exports.getFullRegister = async (req, res, next) => {
         .sort({date: 1})
 
     //console.log(new Date() - _time, 'time2')
+
     res.json({
         uniqueRegistersExt: uniqueRegistersExt,
-        registersActive: registersActive.map(reg => ({
-            ...reg._doc,
-            fname: '###TODO',
-            valn: '###TODO'
-        })),
+        registersActive: registersActive.map(reg => 
+            {
+                let valuesSymbol = valuesAll.filter(item => item.symbol === reg._doc.symbol)
+                return {
+                    ...reg._doc,
+                    fname: metadata.find(item => item.symbol === reg._doc.symbol).name,
+                    valn: valuesSymbol[valuesSymbol.length-1].value,
+                    daten: valuesSymbol[valuesSymbol.length-1].date
+                }
+            }
+        ),
         minDateForAll: minDateForAll,
         valuesAll: valuesAll.length
     })

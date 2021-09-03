@@ -1,6 +1,6 @@
-
 const Launcher = require("../libs/launcher.js")
-
+const fs = require('fs')
+const jsonexport = require('jsonexport')
 const TFI = require('./../../config/TFI')
 const statsCalculator = require("./../calculate-stats.js")
 const TFIMetaDataCtrl = require('./tfi-controller')
@@ -99,4 +99,89 @@ exports.testAllocation = (req, res, next) => {
         variationsAmount: variationsAmount,
         outputArr: outputArr
     })
+}
+
+
+exports.simulateReturns = (req, res, next) => {
+
+    let pad = new Launcher(
+        5, 
+        [
+            {category: "ALL", period: "M", dateFrom: new Date("2000-01-01"), dateTo: new Date("2000-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2001-01-01"), dateTo: new Date("2001-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2002-01-01"), dateTo: new Date("2002-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2003-01-01"), dateTo: new Date("2003-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2004-01-01"), dateTo: new Date("2004-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2005-01-01"), dateTo: new Date("2005-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2006-01-01"), dateTo: new Date("2006-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2007-01-01"), dateTo: new Date("2007-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2008-01-01"), dateTo: new Date("2008-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2009-01-01"), dateTo: new Date("2009-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2010-01-01"), dateTo: new Date("2010-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2011-01-01"), dateTo: new Date("2011-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2012-01-01"), dateTo: new Date("2012-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2013-01-01"), dateTo: new Date("2013-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2014-01-01"), dateTo: new Date("2014-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2015-01-01"), dateTo: new Date("2015-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2016-01-01"), dateTo: new Date("2016-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2017-01-01"), dateTo: new Date("2017-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2018-01-01"), dateTo: new Date("2018-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2019-01-01"), dateTo: new Date("2019-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2020-01-01"), dateTo: new Date("2020-12-31")},
+            {category: "ALL", period: "M", dateFrom: new Date("2021-01-01"), dateTo: new Date("2021-12-31")},
+        ],//.slice(0,1), 
+        //callFunction,
+        async (item) => {
+            console.log('simulateReturns callFunction', item)
+
+            return new Promise(function(resolve, reject) {
+                try {    
+                    statsCalculator.calcStats(item.period, item.dateFrom, item.dateTo)
+                        .then(result => {
+                            resolve( result )
+                        })
+                        .catch(e => {
+                            reject(e.toString())
+                        }) 
+                } catch (e) {
+                    console.log(item, 'PROMISE EXCEPTION', e)
+                    reject('Promise is rejested'+e.toString())
+                }
+            })
+        },
+        //callbackFunction,
+        (item, value)=> {
+            //console.log('calculate-stats Launcher callbackFunction', item, value)
+            //https://github.com/kaue/jsonexport
+            jsonexport(value, {includeHeaders: true, rowDelimiter: ';'}, function(err, csv){
+                if (err) res.status(200).json(err)
+                // console.log(csv);
+                fs.writeFileSync('download/returns-'+item.category+'_'+item.period+'_'+item.dateFrom.toISOString().substring(0,10)+'_'+item.dateTo.toISOString().substring(0,10)+'.csv', csv);               
+            });
+            return true
+        },
+        //catchFunction
+        (error, item)=> {
+            console.log('simulateReturns catchFunction', error, item)
+        },
+        //finalCallBack
+        (param) => {         
+            console.log('simulateReturns final')                                                         
+        } 
+    );
+    pad.run();
+    res.status(200).json('simulateReturns started')
+
+    //'ARK27,ARS04,ARK33S,UNI03,ING76,SKR36,ING65,ING07,ING17,SKR54,ALL14,ARK57,ALL75,ING77,SKR23,ING91,ING35,ARK24,ARK38,ARS01,ING71'
+    // statsCalculator.calcStats('*')
+    //     .then(result => {
+    //         res.status(200).json({
+    //             result: result
+    //         })
+    //     })
+    //     .catch(e => {
+    //         res.status(403).json({
+    //             error: e.toString()
+    //         })
+    //     }) 
 }

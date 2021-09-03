@@ -6,5 +6,6 @@ router.get('/launch/:symbols', CalculateStatsCtrl.launchCalcStats)
 
 router.get('/test-allocation', CalculateStatsCtrl.testAllocation)
 
+router.get('/simulate-returns', CalculateStatsCtrl.simulateReturns)
 
 module.exports = router

@@ -1,21 +1,46 @@
 const utils = require("./libs/utils.js")
+const TFI = require('./../config/TFI')
 const TFIValues = require('./models/tfi-values-model')
+const TFIMetaData = require('./models/tfi-metadata-model')
 var variationsWithRepetion = require('./libs/variations-repetition').variationsWithRepetion
 
-const CONST_MIN_DATE = new Date("2010-01-01")
+const CONST_MIN_DATE = new Date("2011-01-01")
+const CONST_MAX_DATE = new Date("2015-12-31")
 const CONST_DAY_MILLS = 1000*60*60*24
 
-exports.calcStats = (symbol) => {
 
-    let symbols = symbol.split(',').map(item => {return {symbol: item}})
-    let period = "M" //month
-    let query = { $or: symbols, date: {$gte: CONST_MIN_DATE } }
+exports.calcStats = (period, dateFrom, dateTo) => {
+    console.log('calcStats', period, dateFrom, dateTo)
+    //let symbols = symbol.split(',').map(item => {return {symbol: item}})
+    //let period = "Q" //month    
+    let infos = [
+        "mieszane polskie aktywnej alokacji",
+        "mieszane polskie pozostałe",
+        "mieszane polskie stabilnego wzrostu",
+        "mieszane polskie z ochroną kapitału",
+        "mieszane polskie zrównoważone",
+        "mieszane zagraniczne aktywnej alokacji",
+        "mieszane zagraniczne aktywnej alokacji (waluta)",
+        "mieszane zagraniczne pozostałe",
+        "mieszane zagraniczne stabilnego wzrostu",
+        "mieszane zagraniczne z ochroną kapitału",
+        "mieszane zagraniczne zrównoważone"
+        /*
+        "akcji polskich małych i średnich spółek",
+        "akcji polskich pozostałe",
+        "akcji polskich sektorowych pozostałe",
+        "akcji polskich uniwersalne"
+        */
+    ]   
 
-    return new Promise(function(resolve, reject) {
-        resolve('TESTing...'+JSON.stringify(query))
-    })
+    let symbols = TFI.getList('*')
+        //.filter(item => infos.indexOf(item.info) > -1)
+        .map(item => { return {symbol: item.symbol} })  
 
-    return new Promise(function(resolve, reject) {
+    let query = {/*$or: symbols,*/ date: {$gte: dateFrom, $lte: dateTo } }
+
+    if (true) return new Promise(function(resolve, reject) {
+        //console.log('query', query) 
         TFIValues.find( query ) 
             .sort( {symbol: 1, date: 1})
             .then(function (result) {
@@ -139,52 +164,46 @@ exports.calcStats = (symbol) => {
                 //simulate earnings for portfolio
                 let portfolioSimArr = [] 
                 let portfolioConf = [
-                    {symbol: 'ARK11', amount: 1000},
-                    {symbol: 'ARK29', amount: 40000},
-                    {symbol: 'ARK04', amount: 30000},
-                    {symbol: 'ARK33', amount: 30000},                
-                    {symbol: 'ARK27', amount: 100000},
-                    {symbol: 'ARK01', amount: 1000},
-                    {symbol: 'SKR36', amount: 19500},                    
-                    {symbol: 'SKR54', amount: 19500},                    
-                    {symbol: 'SKR23', amount: 15000},
-                    {symbol: 'ALL14', amount: 6000},
-                    {symbol: 'ALL75', amount: 6000},
-                    {symbol: 'ALL75', amount: 4000},
-                    {symbol: 'ING17', amount: 6000},
-                    {symbol: 'ING17', amount: 4000},
-                    {symbol: 'ALL75', amount: 4000},
-                    {symbol: 'ING65', amount: 10000},
-                    {symbol: 'UNI32', amount: 15000},
-                    {symbol: 'ING04', amount: 27000},
-                    {symbol: 'ING07', amount: 10000},
-                    {symbol: 'ING76', amount: 50000},
-                    {symbol: 'ING65', amount: 1000},
-                    {symbol: 'UNI03', amount: 100},                                        
+                    {symbol: 'ARK27', amount: 89718},
+                    {symbol: 'ARS04', amount: 63975},
+                    {symbol: 'ARK33S', amount: 42481},
+                    {symbol: 'UNI03', amount: 15166},
+                    {symbol: 'ING76', amount: 15026},
+                    {symbol: 'SKR36', amount: 11082},
+                    {symbol: 'ING65', amount: 11002},
+                    {symbol: 'ING07', amount: 10435},
+                    {symbol: 'ING17', amount: 8434},
+                    {symbol: 'SKR54', amount: 6392},
+                    {symbol: 'ALL14', amount: 6381},
+                    {symbol: 'ARK57', amount: 6223},
+                    {symbol: 'ALL75', amount: 6139},
+                    {symbol: 'ING77', amount: 5470},
+                    {symbol: 'SKR23', amount: 5272},
+                    {symbol: 'ING91', amount: 5261},
+                    {symbol: 'ING35', amount: 4937},
+                    {symbol: 'ARK24', amount: 3989},
+                    {symbol: 'ARK38', amount: 3428},
+                    {symbol: 'ARS01', amount: 2657},
+                    {symbol: 'ING71', amount: 1996}                                      
                 ]
                 //calculate portfolio changes
-                if (false) fundData.forEach(fund => {
-                    let position = portfolioConf.find(ptf => ptf.symbol === fund.name)                    
+                let amount = 100
+                if (true) fundData.forEach(fund => {
+                    //let position = portfolioConf.find(ptf => ptf.symbol === fund.name)                    
                     fund.data.forEach(dat => {
                         portfolioSimArr.push([
                             fund.name, 
                             new Date(dat[0]).toISOString().substring(0,10),
                             dat[1],
-                            Math.round(dat[1] * position.amount/100 * 100)/100
+                            Math.round(dat[1] * /*position.amount*/ amount/100 * 100)/100,
+                            //position.amount
                         ])
                     })  
                 })
 
-                console.log('fundData.length', fundData.length) 
-                resolve({
-                    //resultArr: resultArr,
-                    //combinedArr: combinedArr,
-                    //varData: varData,
-                    //pivotData: pivotData,
-                    chartData: fundData,
-                    sumData: sumDataOut,
-                    // portfolioSimArr: portfolioSimArr
-                })                          
+                console.log('portfolioSimArr.length', portfolioSimArr.length) 
+                resolve(portfolioSimArr) 
+                                          
             }).catch(e => {
                reject(e.toString())
             })

@@ -3796,6 +3796,14 @@ exports.TFIs = [
 		info: "akcji polskich uniwersalne"
 	},
 	{
+		source: "ANALIZY", symbol: "ARK01",
+		name: "Santander Akcji Polskich",
+		href: "/fundusze-inwestycyjne-otwarte/ARK01/santander-akcji-polskich",
+		type: "Akcyjne",
+		firm: "Santander FIO",
+		info: "akcji polskich uniwersalne"
+	},	
+	{
 		source: "ANALIZY", symbol: "ARK55",
 		name: "Santander Akcji Spółek Wzrostowych",
 		href: "/fundusze-inwestycyjne-otwarte/ARK55/santander-akcji-spolek-wzrostowych",
@@ -3867,6 +3875,14 @@ exports.TFIs = [
 		firm: "Santander FIO",
 		info: "mieszane zagraniczne stabilnego wzrostu"
 	},
+	{
+		source: "ANALIZY", symbol: "ARK33",
+		name: "Santander Platinum Stabilny",
+		href: "/fundusze-inwestycyjne-otwarte/ARK33/santander-platinum-stabilny",
+		type: "Mieszane",
+		firm: "Santander FIO",
+		info: "mieszane zagraniczne stabilnego wzrostu"
+	},	
 	{
 		source: "ANALIZY", symbol: "ARK60",
 		name: "Santander Prestiż Akcji Amerykańskich",
@@ -3971,6 +3987,14 @@ exports.TFIs = [
 		firm: "Santander FIO",
 		info: "mieszane polskie stabilnego wzrostu"
 	},
+	{
+		source: "ANALIZY", symbol: "ARK04",
+		name: "Santander Stabilnego Wzrostu",
+		href: "/fundusze-inwestycyjne-otwarte/ARK04/santander-stabilnego-wzrostu",
+		type: "Mieszane",
+		firm: "Santander FIO",
+		info: "mieszane polskie stabilnego wzrostu"
+	},	
 	{
 		source: "ANALIZY", symbol: "ARK46",
 		name: "Santander Strategia Akcyjna",
