@@ -1,7 +1,7 @@
 
 const mongoose = require('mongoose')
 
-const ETFValuesSchema = new mongoose.Schema({
+const ETFValuesSchema = new mongoose.Schema({ 
     symbol: String, 
     date: Date,
     close: Number,

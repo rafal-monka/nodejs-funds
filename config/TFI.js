@@ -3844,6 +3844,14 @@ exports.TFIs = [
 		info: "papierów dłużnych polskich korporacyjnych"
 	},
 	{
+		source: "ANALIZY", symbol: "ARK29",
+		name: "Santander Obligacji Korporacyjnych",
+		href: "/fundusze-inwestycyjne-otwarte/ARK29/santander-obligacji-korporacyjnych",
+		type: "Dłużne",
+		firm: "Santander FIO",
+		info: "papierów dłużnych polskich korporacyjnych"
+	},
+	{
 		source: "ANALIZY", symbol: "ARS11",
 		name: "Santander Obligacji Skarbowych",
 		href: "/fundusze-inwestycyjne-otwarte/ARS11/santander-obligacji-skarbowych-s",
