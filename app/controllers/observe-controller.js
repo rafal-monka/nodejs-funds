@@ -1,3 +1,4 @@
+require('dotenv').config()
 var axios = require('axios')
 //const puppeteer = require('puppeteer')
 const fs = require('fs')
@@ -22,6 +23,7 @@ exports.observeKrugerrand = (req, res, next) => {
 
 exports.observeAll = (req, res, next) => {
     console.log('observeAll')
+    let summary = req.params.summary.toUpperCase()
 
     let pad = new Launcher(
         5,
@@ -29,13 +31,22 @@ exports.observeAll = (req, res, next) => {
             {
                 name: 'Krugerrand', 
                 f: ()=>getKrugerrandInformation(), 
-                cf: (v)=>processKrugerrandInformation(v)
+                cf: (v)=>processKrugerrandInformation(v),
+                threshold: Number(process.env.OBS_THR_KRUGERAND) //7100.0
             },
+            {
+                name: 'SWDA',
+                f: ()=>getSWDAPrice(),
+                cf: (v)=>processSWDAPrice(v),
+                threshold: Number(process.env.OBS_THR_SWDA) //6200.0
+            }
+            /*
             {
                 name: 'iShares Core MSCI EM P/E Ratio', 
                 f: ()=>getiSharesCoreMSCIEM_PE_Information(), 
                 cf: (v)=>processiSharesCoreMSCIEM_PE_Information(v)
             }
+            */
         ],
         //callFunction,
         async (item) => {
@@ -68,10 +79,12 @@ exports.observeAll = (req, res, next) => {
         },
         //finalCallBack
         (param) => {         
-            console.log('observeAll final')    
-            email.sendEmail(
+            console.log('observeAll final') 
+            let finalResult = param.map(el => ({...el, met: el.output < el.item.threshold}))
+            let notify = finalResult.reduce((total, el) => total || el.met, false) 
+            if (notify || summary === "FORCE") email.sendEmail(
                 ' Funds (ObserveAll)', 
-                '<div><pre>'+JSON.stringify(param,' ',1)+'</pre></div>'
+                '<div><pre>'+JSON.stringify(finalResult,' ',1)+'</pre></div>'
             )                                                                  
         } 
     );
@@ -110,6 +123,37 @@ processKrugerrandInformation = (html) => {
 	}
 }
 
+
+getSWDAPrice = () => {    
+    const url = 'https://www.investing.com/etfs/ishares-msci-world---acc?cid=995447'
+
+    console.log('getUrl', url);
+    try {
+        return axios({
+            url: url,
+            method: 'get',
+            params: { }
+        })
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+processSWDAPrice = (html) => {
+    var parser = new DomParser();
+    var dom = parser.parseFromString(html.data);
+    
+    let result = null 
+	try {
+        let price_value = dom.getElementsByClassName('pid-995447-last')
+        result = price_value[0].innerHTML.replace(',','')
+        console.log(result)
+        return result
+    } catch (e) {
+        console.error(e);        
+		return result;
+	}
+}
 
 getiSharesCoreMSCIEM_PE_Information = () => {    
     const url = 'https://www.ishares.com/uk/individual/en/products/264659/'
