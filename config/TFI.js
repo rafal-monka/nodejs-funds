@@ -4568,7 +4568,15 @@ exports.TFIs = [
 		  type: "Exchange",
 		  firm: "",
 		  info: "akcji USA"
-	  }
+	},
+	{
+		source: "CNBC", symbol: "US10Y",
+		name: "US10Y",
+		href: "",
+		type: "US10Y",
+		firm: "FED",
+		info: "US bonds"
+	}
 ]
 
 //https://eodhistoricaldata.com/api/search/IE00B8FHGS14?api_token=607dd1d7ddd5b0.03235574 //ISHARES EDGE MSCI WORLD MINIMUM VOLATILITY UCITS = IQQ0.XETRA | MINV.LSE

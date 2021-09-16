@@ -8,6 +8,7 @@ const TFILook = require('./../models/tfi-look-model')
 const bankierLoader = require("../bankier-values-loader.js")
 const analizyLoader = require("../analizy-values-loader.js")
 const ETFEODLoader = require("../etf-eodhistoricaldata-values-loader.js")
+const CNBCLoader = require("../cnbc-values-loader.js")
 const wss = require('./../../wss')
 const { json } = require("express")
 const e = require("express")
@@ -160,12 +161,13 @@ exports._launchLoadValues = (wssClientID, currentDate, symbols) => {
         TFI.getList(symbols),//.slice(0,1), 
         //callFunction,
         (item)=>{ 
-            //console.log(new Date(), 'call item:', item.symbol)
+            //console.log(new Date(), 'call item:', item)
             switch (item.source.toUpperCase()) {
                 //OLD:case 'MONEY': return moneyValueLoader.callFunction(item); break;
                 case 'BANKIER': return bankierLoader.callFunction(item); break;
                 case 'ANALIZY': return analizyLoader.callFunction(item); break;
-                case 'ETFEOD': return ETFEODLoader.callFunction(item); break;                
+                case 'ETFEOD': return ETFEODLoader.callFunction(item); break;  
+                case 'CNBC': return CNBCLoader.callFunction(item); break;              
                 default: console.log('Error callFunction. Item source '+item.source+' not supported') 
             }
         },
@@ -177,6 +179,7 @@ exports._launchLoadValues = (wssClientID, currentDate, symbols) => {
                 case 'BANKIER': bankierLoader.callbackFunction(item, value); break;
                 case 'ANALIZY': analizyLoader.callbackFunction(item, value); break;
                 case 'ETFEOD': ETFEODLoader.callbackFunction(item, value); break;
+                case 'CNBC': CNBCLoader.callbackFunction(item, value); break;
                 default: console.log('Error callbackFunction. Item source '+item.source+' not supported') 
             }
         },        

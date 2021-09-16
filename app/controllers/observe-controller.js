@@ -36,10 +36,17 @@ exports.observeAll = (req, res, next) => {
             },
             {
                 name: 'SWDA',
-                f: ()=>getSWDAPrice(),
-                cf: (v)=>processSWDAPrice(v),
+                f: ()=>getInvestingPrice('https://www.investing.com/etfs/ishares-msci-world---acc?cid=995447'),
+                cf: (v)=>processInvestingPrice(v, 995447),
                 threshold: Number(process.env.OBS_THR_SWDA) //6200.0
+            },
+            {
+                name: 'VHVE',
+                f: ()=>getInvestingPrice('https://www.investing.com/etfs/vhve'),
+                cf: (v)=>processInvestingPrice(v, 1158795),
+                threshold: Number(process.env.OBS_THR_VHVE) //88.0
             }
+
             /*
             {
                 name: 'iShares Core MSCI EM P/E Ratio', 
@@ -124,8 +131,8 @@ processKrugerrandInformation = (html) => {
 }
 
 
-getSWDAPrice = () => {    
-    const url = 'https://www.investing.com/etfs/ishares-msci-world---acc?cid=995447'
+getInvestingPrice = (url) => {    
+    //const url = 'https://www.investing.com/etfs/ishares-msci-world---acc?cid=995447'
 
     console.log('getUrl', url);
     try {
@@ -139,13 +146,13 @@ getSWDAPrice = () => {
     }
 }
 
-processSWDAPrice = (html) => {
+processInvestingPrice = (html, id) => {
     var parser = new DomParser();
     var dom = parser.parseFromString(html.data);
     
     let result = null 
 	try {
-        let price_value = dom.getElementsByClassName('pid-995447-last')
+        let price_value = dom.getElementsByClassName('pid-'+id+'-last')
         result = price_value[0].innerHTML.replace(',','')
         console.log(result)
         return result
