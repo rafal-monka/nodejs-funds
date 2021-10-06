@@ -30,10 +30,22 @@ exports.observeAll = (req, res, next) => {
         [
             {
                 name: 'Krugerrand', 
-                f: ()=>getKrugerrandInformation(), 
-                cf: (v)=>processKrugerrandInformation(v),
+                f: ()=>getMennicaKapitalowaInformation('product-pol-7-moneta-zlota-Krugerrand-1oz-2021.html'),
+                cf: (v)=>processMennicaKapitalowaInformation(v),
                 threshold: Number(process.env.OBS_THR_KRUGERAND) //7100.0
             },
+            {
+                name: 'Gold 1 oz', 
+                f: ()=>getMennicaKapitalowaInformation('product-pol-37-Sztabki-zlota-CertiCard-1-uncja.html'),
+                cf: (v)=>processMennicaKapitalowaInformation(v),
+                threshold: Number(process.env.OBS_THR_GOLD1OZ) //7100.0
+            },            
+            // {
+            //     name: 'Krugerrand', 
+            //     f: ()=>getKrugerrandInformation(), 
+            //     cf: (v)=>processKrugerrandInformation(v),
+            //     threshold: Number(process.env.OBS_THR_KRUGERAND) //7100.0
+            // },
             {
                 name: 'SWDA',
                 f: ()=>getInvestingPrice('https://www.investing.com/etfs/ishares-msci-world---acc?cid=995447'),
@@ -99,13 +111,13 @@ exports.observeAll = (req, res, next) => {
     res.status(200).json('observeAll started')
 }
 
-getKrugerrandInformation = () => {    
-    const url = 'https://mennicakapitalowa.pl/product-pol-7-moneta-zlota-Krugerrand-1oz-2021.html'
+getMennicaKapitalowaInformation = (product) => {    
+    const url = 'https://mennicakapitalowa.pl/'
 
-    console.log('getUrl', url);
+    console.log('getUrl', url, product);
     try {
         return axios({
-            url: url,
+            url: url+product,
             method: 'get',
             params: { }
         })
@@ -114,7 +126,7 @@ getKrugerrandInformation = () => {
     }
 }
 
-processKrugerrandInformation = (html) => {
+processMennicaKapitalowaInformation = (html) => {
     var parser = new DomParser();
     var dom = parser.parseFromString(html.data);
     
@@ -162,9 +174,10 @@ processInvestingPrice = (html, id) => {
 	}
 }
 
+
+/*
 getiSharesCoreMSCIEM_PE_Information = () => {    
     const url = 'https://www.ishares.com/uk/individual/en/products/264659/'
-/*
     return new Promise(async function(resolve, reject) {
         try {
             const browser = await puppeteer.launch({
@@ -181,7 +194,6 @@ getiSharesCoreMSCIEM_PE_Information = () => {
             reject('SOMETHING WRONG '+e)
         }
     })
-*/
     
     console.log('getUrl', url);
     try {
@@ -213,6 +225,41 @@ processiSharesCoreMSCIEM_PE_Information = (html) => {
 		return result;
 	}
 }
+*/
+
+
+/*
+getKrugerrandInformation = () => {    
+    const url = 'https://mennicakapitalowa.pl/product-pol-7-moneta-zlota-Krugerrand-1oz-2021.html'
+
+    console.log('getUrl', url);
+    try {
+        return axios({
+            url: url,
+            method: 'get',
+            params: { }
+        })
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+processKrugerrandInformation = (html) => {
+    var parser = new DomParser();
+    var dom = parser.parseFromString(html.data);
+    
+    let result = null 
+	try {
+        let projector_price_value = dom.getElementById('projector_price_value')
+        result = projector_price_value.innerHTML.replace(' ','').replace(' zł','').replace(',','.')
+        console.log(result)
+        return result
+    } catch (e) {
+        console.error(e);        
+		return result;
+	}
+}
+*/
 
 
 /*
