@@ -5,6 +5,7 @@ const fs = require('fs')
 var DomParser = require('dom-parser')
 const email = require("../libs/email")
 const Launcher = require("../libs/launcher.js")
+const utils = require("../libs/utils.js")
 
 exports.observeKrugerrand = (req, res, next) => {
     console.log('observeKrugerrand')
@@ -29,7 +30,7 @@ exports.observeAll = (req, res, next) => {
         5,
         [
             {
-                name: 'Krugerrand', 
+                name: 'Gold Krugerrand', 
                 f: ()=>getMennicaKapitalowaInformation('product-pol-7-moneta-zlota-Krugerrand-1oz-2021.html'),
                 cf: (v)=>processMennicaKapitalowaInformation(v),
                 threshold: Number(process.env.OBS_THR_KRUGERAND) //7100.0
@@ -57,7 +58,14 @@ exports.observeAll = (req, res, next) => {
                 f: ()=>getInvestingPrice('https://www.investing.com/etfs/vhve'),
                 cf: (v)=>processInvestingPrice(v, 1158795),
                 threshold: Number(process.env.OBS_THR_VHVE) //88.0
+            },
+            {
+                name: 'IS3N',
+                f: ()=>getInvestingPrice('https://www.investing.com/etfs/ishares-core-msci-em-imi?cid=994133'),
+                cf: (v)=>processInvestingPrice(v, 994133),
+                threshold: Number(process.env.OBS_THR_IS3N) //30.0
             }
+
 
             /*
             {
@@ -99,11 +107,19 @@ exports.observeAll = (req, res, next) => {
         //finalCallBack
         (param) => {         
             console.log('observeAll final') 
-            let finalResult = param.map(el => ({...el, met: el.output < el.item.threshold}))
-            let notify = finalResult.reduce((total, el) => total || el.met, false) 
+            let finalResult = param.map(el => ({
+                //...el,
+                name: el.item.name, 
+                threshold: el.item.threshold, 
+                value: el.output,
+                diff: Math.round((el.item.threshold - el.output)*100)/100
+            })).sort((a,b) => a.name > b.name ? 1 : -1)
+            
+            let notify = finalResult.reduce((total, el) => total || (el.diff > 0), false) 
+            let bodyTxt = utils.json2Table(finalResult, [0,1,1,1], 'diff') //JSON.stringify(finalResult,' ',1)
             if (notify || summary === "FORCE") email.sendEmail(
                 ' Funds (ObserveAll)', 
-                '<div><pre>'+JSON.stringify(finalResult,' ',1)+'</pre></div>'
+                '<div><pre>'+bodyTxt+'</pre></div>'
             )                                                                  
         } 
     );
