@@ -4492,6 +4492,7 @@ exports.TFIs = [
 		info: "akcji globalnych rynków EM"
 	},		
 	//MSCI MIN volatility developed markets
+	/*
 	{
 		source: "ETFEOD", symbol: "MINV.LSE",
 		name: "ISHARES EDGE MSCI WORLD MINIMUM VOLATILITY UCITS (LSE)",
@@ -4508,6 +4509,7 @@ exports.TFIs = [
 		firm: "IE00B8FHGS14",
 		info: "akcji globalnych rynków rozwiniętych"
 	},
+	*/
 	//MSCI MIN volatility EM
 	//...
 	//FTSE Developed World
@@ -4569,6 +4571,14 @@ exports.TFIs = [
 		  firm: "",
 		  info: "akcji USA"
 	},
+	{
+		source: "ETFEOD", symbol: "VUKE.LSE",
+		name: "Vanguard FTSE 100 UCITS ETF",
+		href: "",
+		type: "Exchange",
+		firm: "",
+		info: "akcji GB"
+	},	
 	{
 		source: "CNBC", symbol: "US10Y",
 		name: "US10Y",
